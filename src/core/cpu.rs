@@ -81,7 +81,7 @@ impl CPU
             // ADD
             Instruction::ADD(target) =>
             {
-                match target
+               let addA= match target
                 {
                     ArithmeticTarget::C =>
                     {
@@ -89,14 +89,99 @@ impl CPU
                         let new_value = self.add(value);
                         self.registers.A = new_value;
                         self.program_counter.wrapping_add(1)
+                    },
+                    ArithmeticTarget::B =>
+                    {
+                        let value = self.registers.B;
+                        let new_value = self.add(value);
+                        self.registers.A = new_value;
+                        self.program_counter.wrapping_add(1)
+                    },
+                    ArithmeticTarget::A =>
+                    {
+                        let value = self.registers.A;
+                        let new_value = self.add(value);
+                        self.registers.A = new_value;
+                        self.program_counter.wrapping_add(1)
+                    },
+                    ArithmeticTarget::D =>
+                    {
+                        let value = self.registers.D;
+                        let new_value = self.add(value);
+                        self.registers.A = new_value;
+                        self.program_counter.wrapping_add(1)
+                    },
+                    ArithmeticTarget::E =>
+                    {
+                        let value = self.registers.E;
+                        let new_value = self.add(value);
+                        self.registers.A = new_value;
+                        self.program_counter.wrapping_add(1)
+                    },
+                    ArithmeticTarget::H =>
+                    {
+                        let value = self.registers.H;
+                        let new_value = self.add(value);
+                        self.registers.A = new_value;
+                        self.program_counter.wrapping_add(1)
+                    },
+                    ArithmeticTarget::L =>
+                    {
+                        let value = self.registers.L;
+                        let new_value = self.add(value);
+                        self.registers.A = new_value;
+                        self.program_counter.wrapping_add(1)
                     }
-                }
-                _ => 
-                {
-                    // TODO: support more targets
-                    self.program_counter
-                }
+
+                };
+                
+                    self.add(addA)
+                
             }
+
+
+
+            Instruction::ADDHL(target) =>
+            {
+               let addA= match target
+                {
+                    ADDHLTarget::BC =>
+                    {
+                        let value = self.registers.get_BC();
+                        let new_value = self.add(value);
+                        self.registers.set_HL(new_value);
+                        self.program_counter.wrapping_add(1)
+                    },
+                    ADDHLTarget::DE =>
+                    {
+                        let value = self.registers.get_DE();
+                        let new_value = self.add(value);
+                        self.registers.set_HL(new_value);
+                        self.program_counter.wrapping_add(1)
+                    },
+                   
+                    ADDHLTarget::HL =>
+                    {
+                        let value = self.registers.get_HL();
+                        let new_value = self.add(value);
+                        self.registers.set_HL(new_value);
+                        self.program_counter.wrapping_add(1)
+                    },
+                    ADDHLTarget::SP =>
+                    {
+                        let value = self.registers.SP;
+                        let new_value = self.add(value);
+                        self.registers.set_HL(new_value);
+                        self.program_counter.wrapping_add(1)
+                    },
+                    
+
+                };
+                
+                    self.add(addA)
+                
+            }
+
             // JP
             Instruction::JP(target) =>
             {

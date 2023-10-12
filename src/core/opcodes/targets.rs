@@ -19,6 +19,17 @@ pub enum ADDHLTarget
     SP,
 }
 
+
+pub enum targetA
+{
+    
+}
+
+pub enum sourceA
+{
+    
+}
+
 // -------------------------------------------------------
 // Prefixed Targets
 pub enum PrefixTarget 

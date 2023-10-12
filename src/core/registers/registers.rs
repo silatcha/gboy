@@ -27,6 +27,7 @@ impl Registers
             F: FlagsRegister::new(),
             H: 0,
             L: 0,
+            SP
         }
     }
 

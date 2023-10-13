@@ -5,3 +5,4 @@ authors = ["Lebrazi Mohammed Achraf <lebrazi.med.achraf@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+sdl2 = "0.2.3"

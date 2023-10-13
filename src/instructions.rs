@@ -551,7 +551,7 @@ impl Instruction
             0xC8 => Some(Instruction::RET(JumpTest::Z)),
             0xC9 => Some(Instruction::RET(JumpTest)),// revoir
             0xCA => Some(Instruction::JP(JumpTest::Z)),
-            0xCB => Some(Instruction::from_byte_prefixed(byte)),
+            0xCB => Some(Instruction::from_byte_prefixed(byte)),// pas d'idée
             0xCC => Some(Instruction::CALL(JumpTest::Z)),
             0xCD => Some(Instruction::CALL(ArithmeticTarget::A)),// revoir
             0xCE => Some(Instruction::ADC(ArithmeticTarget::D8)),
@@ -591,7 +591,7 @@ impl Instruction
             0xF0 => Some(Instruction::LDH(targetA)),
             0xF1 => Some(Instruction::POP(StackTarget::AF)),
             0xF2 => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::A, LoadByteSource::C))),
-            0xF3 => Some(Instruction::JP(JumpTest::E)),// pas d'idéé
+            0xF3 => Some(Instruction::DI),
             //0xE4 => Some(Instruction::CALL(JumpTest::NC)),
             0xF5 => Some(Instruction::PUSH(StackTarget::AF)),
             0xF6 => Some(Instruction::OR(ArithmeticTarget::D8)),
@@ -599,7 +599,7 @@ impl Instruction
             0xF8 => Some(Instruction::LD(LoadType::HLFromSPN)),// revoir
             0xF9 => Some(Instruction::LD(LoadType::SPFromHL)),
             0xFA => Some(Instruction::LD(LoadType::Word(LoadWordTarget::A))),// pas d'idée
-            0xFB => Some(Instruction::JP(JumpTest::Z)),// pas d'idée
+            0xFB => Some(Instruction::EI),
             //0xFC => Some(Instruction::CALL(JumpTest::C)),
             //0xDD => Some(Instruction::CALL(JumpTest)),// revoir
             0xFE => Some(Instruction::CP(ArithmeticTarget::D8)),

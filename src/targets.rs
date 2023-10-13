@@ -9,7 +9,8 @@ pub enum ArithmeticTarget
     E,
     H,
     L,
-    HL,
+    HL
+
 }
 
 pub enum ADDHLTarget

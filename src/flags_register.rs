@@ -20,9 +20,11 @@
 use std;
 
 const ZERO_FLAG_BYTE_POS: u8 = 7;
-const SUB_FLAG_BYTE_POS: u8 = 6
-const HC_FLAG_BYTE_POS: u8 = 5
-const CARRY_FLAG_BYTE_POS: u8 = 4
+
+const SUB_FLAG_BYTE_POS: u8 = 6;
+const HC_FLAG_BYTE_POS: u8 = 5;
+const CARRY_FLAG_BYTE_POS: u8 = 4;
+
 
 pub struct FlagsRegister
 {
@@ -57,7 +59,9 @@ impl std::convert::From<FlagsRegister> for u8
         (if flag.zero       { 1 } else { 0 }) << ZERO_FLAG_BYTE_POS       |
         (if flag.substract  { 1 } else { 0 }) << SUB_FLAG_BYTE_POS        |
         (if flag.half_carry { 1 } else { 0 }) << HC_FLAG_BYTE_POS |
-        (if flag.carry      { 1 } else { 0 }) << CARRY_FLAG_BYTE_POS      |
+
+        (if flag.carry      { 1 } else { 0 }) << CARRY_FLAG_BYTE_POS      
+
     }
 }
 

@@ -1292,7 +1292,7 @@ impl CPU
                         LoadByteSource::DE => self.registers.get_HL(),
                         LoadByteSource::HL => self.registers.get_HL(),
                         LoadByteSource::D8 => self.read_next_byte(),
-                        LoadByteSource:: => self.registers.C,
+                       // LoadByteSource:: => self.registers.C,
                         LoadByteSource::HLD => self.bus.read_byte(self.registers.get_HL()),
                         LoadByteSource::HLI => self.bus.read_byte(self.registers.get_HL())                       
                     };
@@ -1385,8 +1385,8 @@ impl CPU
                     StackTarget::DE => self.registers.get_DE(),
                     StackTarget::HL => self.registers.get_HL(),
                     StackTarget::AF => self.registers.get_AF(),
-                    self.push(value);
-                    self.program_counter.wrapping_add(1)
+                    //self.push(value);
+                    //self.program_counter.wrapping_add(1)
                 }
             }
             // POP

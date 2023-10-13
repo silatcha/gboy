@@ -1315,7 +1315,7 @@ impl CPU
                         LoadByteSource::DE => self.registers.get_HL(),
                         LoadByteSource::HL => self.registers.get_HL(),
                         LoadByteSource::D8 => self.read_next_byte(),
-                       // LoadByteSource:: => self.registers.C,
+                        LoadByteSource:: => self.registers.C,
                         LoadByteSource::HLD => self.bus.read_byte(self.registers.get_HL()),
                         LoadByteSource::HLI => self.bus.read_byte(self.registers.get_HL())                       
                     };
@@ -1404,9 +1404,15 @@ impl CPU
                     StackTarget::BC => self.registers.get_BC(),
                     StackTarget::DE => self.registers.get_DE(),
                     StackTarget::HL => self.registers.get_HL(),
+<<<<<<< HEAD:src/cpu.rs
                     StackTarget::AF => self.registers.get_AF()
                     //self.push(value);
                     //self.program_counter.wrapping_add(1)
+=======
+                    StackTarget::AF => self.registers.get_AF(),
+                    self.push(value);
+                    self.program_counter.wrapping_add(1)
+>>>>>>> parent of 71a73b3... commit 2 sur instructions:src/core/cpu.rs
                 }
             }
             // POP

@@ -7,6 +7,11 @@ pub enum Instruction
 {
     // 8-bit & 16-bit Loads
     LD(LoadType),
+    LDC(LoadType),
+    LDHLI(LoadType),
+    LDHLD(LoadType),
+    LDHLI(LoadType),
+    LDR(LoadType),
     PUSH(StackTarget),
     POP(StackTarget),
     LDH(targetA),
@@ -28,6 +33,7 @@ pub enum Instruction
 
     // 16-bit Arithmetic
     ADDHL(ADDHLTarget),
+    SUBHL(ADDHLTarget),
     ADDSP,
 
     // Miscellaneous
@@ -67,7 +73,7 @@ pub enum Instruction
     // Jumps
     JP(JumpTest),
     JR(JumpTest),
-    JPI,
+    JPHL,
 
     // Calls
     CALL(JumpTest),
@@ -581,7 +587,7 @@ impl Instruction
             0xE6 => Some(Instruction::AND(ArithmeticTarget::D8)),
             0xE7 => Some(Instruction::RST(RSTPosition::X20)),
             0xE8 => Some(Instruction::ADDSP),
-            0xE9 => Some(Instruction::JP(JumpTest::HL)),
+            0xE9 => Some(Instruction::JPHL),
             0xEA => Some(Instruction::LD(JumpTest::C)),// pas d'idée
             //0xDB => Some(Instruction::JP(JumpTest::Z)),// pas d'idée
             //0xEC => Some(Instruction::CALL(JumpTest::C)),

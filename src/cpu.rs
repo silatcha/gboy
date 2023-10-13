@@ -1339,10 +1339,7 @@ impl CPU
                         LoadByteSource::D8  => self.program_counter.wrapping_add(2),
                         _                   => self.program_counter.wrapping_add(1),
                     }
-                    _=>
-                    {
-                        // TODO: implement other load types
-                    }
+                    
                 }
             }
             // CALL
@@ -1407,7 +1404,7 @@ impl CPU
                     StackTarget::BC => self.registers.get_BC(),
                     StackTarget::DE => self.registers.get_DE(),
                     StackTarget::HL => self.registers.get_HL(),
-                    StackTarget::AF => self.registers.get_AF(),
+                    StackTarget::AF => self.registers.get_AF()
                     //self.push(value);
                     //self.program_counter.wrapping_add(1)
                 }

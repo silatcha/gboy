@@ -1,7 +1,7 @@
 pub struct MemoryBus 
 {
 
-    memory: [u8; 0xFFFF]
+    memory: [u8; 0xFFFF],
     boot_rom: Option<[u8; 0xFFFF]>,
     game_rom: [u8; 0xFFFF]
     // TODO: review MMU logic

@@ -204,6 +204,488 @@ impl CPU
                 
             }
 
+
+ // RES
+ Instruction::RES(target, bitPosition) =>
+ {
+     
+     let prefix = match target
+     {
+         PrefixTarget::A => {
+             let value =self.registers.A;
+             self.registers.A=  self.res(bitPosition,value);
+             self.program_counter.wrapping_add(2);
+         },
+         PrefixTarget::B => {
+             let value =self.registers.B;
+             self.registers.B=  self.res(bitPosition,value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::C => {
+             let value =self.registers.C;
+             self.registers.C=  self.res(bitPosition,value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::D => {
+             let value =self.registers.D;
+             self.registers.D=  self.res(bitPosition,value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::E => {
+             let value =self.registers.E;
+             self.registers.E=  self.res(bitPosition,value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::H => {
+             let value =self.registers.H;
+             self.registers.H=  self.res(bitPosition,value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::L => {
+             let value =self.registers.L;
+             self.registers.L=  self.res(bitPosition,value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::HLI => {
+             let value =self.registers.get_HL();
+             self.registers.set_HL( self.res(bitPosition,value));
+             self.program_counter.wrapping_add(2);},
+     };
+    
+     self.res(bitPosition,prefix)
+ }
+  // RL
+  Instruction::RL(target) =>
+  {
+      
+      let prefix = match target
+      {
+         PrefixTarget::A => {
+             let value =self.registers.A;
+             self.registers.A=  self.rl(value);
+             self.program_counter.wrapping_add(2);
+         },
+         PrefixTarget::B => {
+             let value =self.registers.B;
+             self.registers.B=  self.rl(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::C => {
+             let value =self.registers.C;
+             self.registers.C=  self.rl(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::D => {
+             let value =self.registers.D;
+             self.registers.D=  self.rl(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::E => {
+             let value =self.registers.E;
+             self.registers.E=  self.rl(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::H => {
+             let value =self.registers.H;
+             self.registers.H=  self.rl(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::L => {
+             let value =self.registers.L;
+             self.registers.L=  self.rl(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::HLI => {
+             let value =self.registers.get_HL();
+             self.registers.set_HL( self.rl(value));
+             self.program_counter.wrapping_add(2);},
+      };
+   
+      self.rl(prefix)
+  }
+
+  // RLC
+  Instruction::RLC(target) =>
+  {
+      
+      let prefix = match target
+      {
+         PrefixTarget::A => {
+             let value =self.registers.A;
+             self.registers.A=  self.rlc(value);
+             self.program_counter.wrapping_add(2);
+         },
+         PrefixTarget::B => {
+             let value =self.registers.B;
+             self.registers.B=  self.rlc(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::C => {
+             let value =self.registers.C;
+             self.registers.C=  self.rlc(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::D => {
+             let value =self.registers.D;
+             self.registers.D=  self.rlc(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::E => {
+             let value =self.registers.E;
+             self.registers.E=  self.rlc(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::H => {
+             let value =self.registers.H;
+             self.registers.H=  self.rlc(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::L => {
+             let value =self.registers.L;
+             self.registers.L=  self.rlc(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::HLI => {
+             let value =self.registers.get_HL();
+             self.registers.set_HL( self.rlc(value));
+             self.program_counter.wrapping_add(2);},
+      };
+     
+      self.rlc(prefix)
+  }
+
+  // RR
+  Instruction::RR(target) =>
+  {
+      
+      let prefix = match target
+      {
+         PrefixTarget::A => {
+             let value =self.registers.A;
+             self.registers.A=  self.rr(value);
+             self.program_counter.wrapping_add(2);
+         },
+         PrefixTarget::B => {
+             let value =self.registers.B;
+             self.registers.B=  self.rr(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::C => {
+             let value =self.registers.C;
+             self.registers.C=  self.rr(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::D => {
+             let value =self.registers.D;
+             self.registers.D=  self.rr(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::E => {
+             let value =self.registers.E;
+             self.registers.E=  self.rr(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::H => {
+             let value =self.registers.H;
+             self.registers.H=  self.rr(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::L => {
+             let value =self.registers.L;
+             self.registers.L=  self.rr(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::HLI => {
+             let value =self.registers.get_HL();
+             self.registers.set_HL( self.rr(value));
+             self.program_counter.wrapping_add(2);},
+      };
+     
+      self.rr(prefix)
+  }
+
+
+  // RRc
+  Instruction::RRC(target) =>
+  {
+      
+      let prefix = match target
+      {
+         PrefixTarget::A => {
+             let value =self.registers.A;
+             self.registers.A=  self.rrc(value);
+             self.program_counter.wrapping_add(2);
+         },
+         PrefixTarget::B => {
+             let value =self.registers.B;
+             self.registers.B=  self.rrc(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::C => {
+             let value =self.registers.C;
+             self.registers.C=  self.rrc(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::D => {
+             let value =self.registers.D;
+             self.registers.D=  self.rrc(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::E => {
+             let value =self.registers.E;
+             self.registers.E=  self.rrc(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::H => {
+             let value =self.registers.H;
+             self.registers.H=  self.rrc(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::L => {
+             let value =self.registers.L;
+             self.registers.L=  self.rrc(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::HLI => {
+             let value =self.registers.get_HL();
+             self.registers.set_HL( self.rrc(value));
+             self.program_counter.wrapping_add(2);},
+      };
+     
+      self.rrc(prefix)
+  }
+
+
+   // RST
+   Instruction::RST(target) =>
+   {
+       
+       
+     self.program_counter.wrapping_add(1);
+       self.rst(target);
+   }
+
+
+   // SCF
+   Instruction::SCF(target) =>
+   {
+       
+       
+     self.program_counter.wrapping_add(1);
+       self.SCF(target);
+   }
+
+   // SET
+   Instruction::SET(target,bitPosition) =>
+   {
+       
+       
+     let prefix = match target
+     {
+         PrefixTarget::A => {
+             let value =self.registers.A;
+             self.registers.A=  self.set(bitPosition,value);
+             self.program_counter.wrapping_add(2);
+         },
+         PrefixTarget::B => {
+             let value =self.registers.B;
+             self.registers.B=  self.set(bitPosition,value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::C => {
+             let value =self.registers.C;
+             self.registers.C=  self.set(bitPosition,value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::D => {
+             let value =self.registers.D;
+             self.registers.D=  self.set(bitPosition,value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::E => {
+             let value =self.registers.E;
+             self.registers.E=  self.set(bitPosition,value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::H => {
+             let value =self.registers.H;
+             self.registers.H=  self.set(bitPosition,value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::L => {
+             let value =self.registers.L;
+             self.registers.L=  self.set(bitPosition,value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::HLI => {
+             let value =self.registers.get_HL();
+             self.registers.set_HL( self.set(bitPosition,value));
+             self.program_counter.wrapping_add(2);},
+     };
+    
+     self.set(bitPosition,prefix)
+   }
+
+   // SLA
+   Instruction::SLA(target) =>
+   {
+       
+       
+     let prefix = match target
+     {
+         PrefixTarget::A => {
+             let value =self.registers.A;
+             self.registers.A=  self.sla(value);
+             self.program_counter.wrapping_add(2);
+         },
+         PrefixTarget::B => {
+             let value =self.registers.B;
+             self.registers.B=  self.sla(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::C => {
+             let value =self.registers.C;
+             self.registers.C=  self.sla(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::D => {
+             let value =self.registers.D;
+             self.registers.D=  self.sla(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::E => {
+             let value =self.registers.E;
+             self.registers.E=  self.sla(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::H => {
+             let value =self.registers.H;
+             self.registers.H=  self.sla(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::L => {
+             let value =self.registers.L;
+             self.registers.L=  self.sla(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::HLI => {
+             let value =self.registers.get_HL();
+             self.registers.set_HL( self.sla(value));
+             self.program_counter.wrapping_add(2);},
+     };
+    
+     self.sla(prefix)
+   }
+
+   // SRA
+   Instruction::SRA(target) =>
+   {
+       
+       
+     let prefix = match target
+     {
+         PrefixTarget::A => {
+             let value =self.registers.A;
+             self.registers.A=  self.sra(value);
+             self.program_counter.wrapping_add(2);
+         },
+         PrefixTarget::B => {
+             let value =self.registers.B;
+             self.registers.B=  self.sra(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::C => {
+             let value =self.registers.C;
+             self.registers.C=  self.sra(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::D => {
+             let value =self.registers.D;
+             self.registers.D=  self.sra(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::E => {
+             let value =self.registers.E;
+             self.registers.E=  self.sra(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::H => {
+             let value =self.registers.H;
+             self.registers.H=  self.sra(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::L => {
+             let value =self.registers.L;
+             self.registers.L=  self.sra(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::HLI => {
+             let value =self.registers.get_HL();
+             self.registers.set_HL( self.sra(value));
+             self.program_counter.wrapping_add(2);},
+     };
+    
+     self.sra(prefix)
+   }
+
+   // SRL
+   Instruction::SRL(target) =>
+   {
+       
+       
+     let prefix = match target
+     {
+         PrefixTarget::A => {
+             let value =self.registers.A;
+             self.registers.A=  self.srl(value);
+             self.program_counter.wrapping_add(2);
+         },
+         PrefixTarget::B => {
+             let value =self.registers.B;
+             self.registers.B=  self.srl(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::C => {
+             let value =self.registers.C;
+             self.registers.C=  self.srl(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::D => {
+             let value =self.registers.D;
+             self.registers.D=  self.srl(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::E => {
+             let value =self.registers.E;
+             self.registers.E=  self.srl(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::H => {
+             let value =self.registers.H;
+             self.registers.H=  self.srl(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::L => {
+             let value =self.registers.L;
+             self.registers.L=  self.srl(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::HLI => {
+             let value =self.registers.get_HL();
+             self.registers.set_HL( self.srl(value));
+             self.program_counter.wrapping_add(2);},
+     };
+    
+     self.srl(prefix)
+   }
+
+   // SRL
+   Instruction::SWAP(target) =>
+   {
+       
+       
+     let prefix = match target
+     {
+         PrefixTarget::A => {
+             let value =self.registers.A;
+             self.registers.A=  self.swap(value);
+             self.program_counter.wrapping_add(2);
+         },
+         PrefixTarget::B => {
+             let value =self.registers.B;
+             self.registers.B=  self.swap(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::C => {
+             let value =self.registers.C;
+             self.registers.C=  self.swap(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::D => {
+             let value =self.registers.D;
+             self.registers.D=  self.swap(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::E => {
+             let value =self.registers.E;
+             self.registers.E=  self.swap(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::H => {
+             let value =self.registers.H;
+             self.registers.H=  self.swap(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::L => {
+             let value =self.registers.L;
+             self.registers.L=  self.swap(value);
+             self.program_counter.wrapping_add(2);},
+         PrefixTarget::HLI => {
+             let value =self.registers.get_HL();
+             self.registers.set_HL( self.swap(value));
+             self.program_counter.wrapping_add(2);},
+     };
+    
+     self.swap(prefix)
+   }
+
+
+   // EI
+   Instruction::EI =>
+   {
+     self.program_counter.wrapping_add(1);
+     self.ei()
+   }
+
+   // EI
+   Instruction::DI =>
+   {
+     self.program_counter.wrapping_add(1);
+     self.Di()
+   }
+
+
             Instruction::SUBHL(target) =>
             {
                let subA= match target

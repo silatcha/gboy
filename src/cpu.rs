@@ -2349,7 +2349,7 @@ impl CPU
 
         // Set the flags
         self.registers.F.zero = false;
-=======
+
         self.registers.F.half_carry = ((self.registers.A & 0xF) + (value + 0xF)) > 0xF;
 
         new_value

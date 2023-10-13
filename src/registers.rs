@@ -11,6 +11,7 @@ pub struct Registers
     F: FlagRegisters,
     H: u8,
     L: u8,
+    SP:u8
 }
 
 impl Registers 
@@ -27,7 +28,7 @@ impl Registers
             F: FlagsRegister::new(),
             H: 0,
             L: 0,
-            SP
+            SP:0
         }
     }
 

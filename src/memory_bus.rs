@@ -1,6 +1,7 @@
 pub struct MemoryBus 
 {
-    memory: [u8; 0xFFFF],
+
+    memory: [u8; 0xFFFF]
     boot_rom: Option<[u8; 0xFFFF]>,
     game_rom: [u8; 0xFFFF]
     // TODO: review MMU logic
@@ -25,11 +26,12 @@ impl MemoryBus
 
         match address
         {
+
             VRAM_BEGIN ..= VRAM_END =>
             {
                 self.gpu.read_vram(address - VRAM_BEGIN)
             }
-        
+
         }
 
         self.memory[address as usize]
@@ -37,10 +39,12 @@ impl MemoryBus
 
     fn write_byte(&self, address: u16, byte: u8)
     {
+
         let address = address as usize;
       
                 self.gpu.write_vram(address, byte);
         
         
+
     }
 }

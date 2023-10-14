@@ -154,14 +154,14 @@ impl CPU
                     ADDHLTarget::BC =>
                     {
                         let value = self.registers.get_BC();
-                        let new_value = self.add(value);
+                        let new_value = self.addhl(value);
                         self.registers.set_HL(new_value);
                         self.program_counter.wrapping_add(1)
                     },
                     ADDHLTarget::DE =>
                     {
                         let value = self.registers.get_DE();
-                        let new_value = self.add(value);
+                        let new_value = self.addhl(value);
                         self.registers.set_HL(new_value);
                         self.program_counter.wrapping_add(1)
                     },
@@ -169,14 +169,14 @@ impl CPU
                     ADDHLTarget::HL =>
                     {
                         let value = self.registers.get_HL();
-                        let new_value = self.add(value);
+                        let new_value = self.addhl(value);
                         self.registers.set_HL(new_value);
                         self.program_counter.wrapping_add(1)
                     },
                     ADDHLTarget::SP =>
                     {
                         let value = self.registers.SP;
-                        let new_value = self.add(value);
+                        let new_value = self.addhl(value);
                         self.registers.set_HL(new_value);
                         self.program_counter.wrapping_add(1)
                     },
@@ -2137,25 +2137,7 @@ impl CPU
         new_value
     }
 
-    // Accumulate
-    fn addhl(&mut self, value: u8) -> u8
-    {
-        let (new_value, did_overflow) = self.registers.get_HL().overflowing_add(value);
-
-        // Set the flags
-        self.registers.F.zero = (new_value == 0);
-
-        self.registers.F.substract = false;
-        self.registers.F.carry = did_overflow;
-
-        // Half Carry is set if adding the lower nibbles of the value and
-        // register A together results in a value bigger than 0xF.
-
-        self.registers.F.half_carry = ((self.registers.SP & 0xF) + (value + 0xF)) > 0xF;
-
-        new_value
-
-    }
+   
     fn bit_zero(val: u8, bit: u8) -> bool {
         (val & (1u8 << (bit as usize))) == 0
     }
@@ -2218,24 +2200,6 @@ impl CPU
         self.registers.F.half_carry = false;
         self.registers.F.carry = (adjust & 0x60 == 0x60);
      
-    }
-
-    // Jump
-    fn jump(&self, should_jump: bool) -> u16
-
-    {
-        if should_jump
-        {
-            // GB is Little Endian, ie:
-            // PC+2 is MSB and PC+1 is LSB
-            let least_significant_byte = self.bus.read_byte(self.program_counter + 1) as u16;
-            let most_significant_byte = self.bus.read_byte(self.program_counter + 2) as u16;
-        }
-        else
-        {
-            // Jump instruction is 3 bytes wide, we still need to move the PC if we don't jump
-            self.program_counter.wrapping_add(3)
-        }
     }
 
 
@@ -2372,7 +2336,7 @@ impl CPU
     }
 
     // Accumulate
-    fn addhl(&mut self, value: u8) -> u8
+    fn addhl(&mut self, value: u16) -> u16
     {
         let (new_value, did_overflow) = self.registers.get_HL().overflowing_add(value);
 

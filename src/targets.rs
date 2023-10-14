@@ -175,6 +175,7 @@ pub enum LoadByteSource
     H,
     L,
     D8,
+    CC,
     BC,
     DE,
     HLI,

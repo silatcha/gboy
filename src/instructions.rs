@@ -591,7 +591,7 @@ impl Instruction
             0xDF => Some(Instruction::RST(RSTPosition::X18)),
             0xE0 => Some(Instruction::LDH(sourceA)),
             0xE1 => Some(Instruction::POP(StackTarget::HL)),
-            0xE2 => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::C, LoadByteSource::A))),
+            0xE2 => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::CC, LoadByteSource::A))),
             //0xD3 => Some(Instruction::JP(JumpTest::E)),
             //0xE4 => Some(Instruction::CALL(JumpTest::NC)),
             0xE5 => Some(Instruction::PUSH(StackTarget::HL)),

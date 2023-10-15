@@ -23,6 +23,8 @@ const VRAM_SIZE: usize = (VRAM_END - VRAM_BEGIN) + 1;
  * 0b01 : light-grey
  * 0b00 : black
  */
+
+ #[derive(Copy,Clone)]
 enum TilePixelValue 
 {
     WHITE,
@@ -39,7 +41,7 @@ fn empty_tile() -> Tile
     [[TilePixelValue::WHITE; 8]; 8]
 }
 
-struct GPU
+pub struct GPU
 {
     vram: [u8; VRAM_SIZE],
     tile_set: [Tile; TILES_SIZE],
@@ -47,8 +49,16 @@ struct GPU
 
 impl GPU
 {
+
+    pub fn new() -> GPU {
+        GPU {
+            vram: [0; VRAM_SIZE],      // Initialize vram with zeros
+            tile_set: [empty_tile(); TILES_SIZE],  // Initialize tile_set with Tile instances
+        }
+    }
+
     // Read and Write to and from VRAM array
-    fn write_vram(&mut self, address: usize, value: u8)
+   pub fn write_vram(&mut self, address: usize, value: u8)
     {
         // If the address is greater than 0x1800, abort
         if address >= 0x1800
@@ -95,7 +105,7 @@ impl GPU
         }
     }
 
-    fn read_vram(&self, address: usize) -> u8
+  pub  fn read_vram(&self, address: usize) -> u8
     {
         self.vram[address]
     }

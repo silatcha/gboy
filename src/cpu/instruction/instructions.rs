@@ -1,6 +1,9 @@
 use std;
-use targets::*;
 
+
+use super::targets;
+
+use targets::*;
 // -------------------------------------------------------
 // OpCodes Summary
 pub enum Instruction
@@ -11,7 +14,6 @@ pub enum Instruction
     LDC(LoadType),
     LDHLI(LoadType),
     LDHLD(LoadType),
-    LDHLI(LoadType),
     LDR(LoadType),
     PUSH(StackTarget),
     POP(StackTarget),
@@ -96,7 +98,7 @@ pub enum Instruction
 impl Instruction
 {
     // Decodes an instruction into a byte
-    fn from_byte(byte: u8, prefixed: bool) -> Option<Instruction>
+  pub  fn from_byte(byte: u8, prefixed: bool) -> Option<Instruction>
     {
         if prefixed
         {
@@ -109,7 +111,7 @@ impl Instruction
     }
 
     // Decodes an instruction into a byte, if prefixed then one extra byte
-    fn from_byte_prefixed(byte: u8) -> Option<Instruction>
+  pub  fn from_byte_prefixed(byte: u8) -> Option<Instruction>
     {
         match byte
         {
@@ -244,7 +246,7 @@ impl Instruction
             0x88 => Some(Instruction::RES(PrefixTarget::B,BitPosition::B1)),
             0x89 => Some(Instruction::RES(PrefixTarget::C,BitPosition::B1)),
             0x8A => Some(Instruction::RES(PrefixTarget::D,BitPosition::B1)),
-            0x8B => Some(Instruction::RES(PrefixTarget::E,BitPosition::BBitPosition::B1)),
+            0x8B => Some(Instruction::RES(PrefixTarget::E,BitPosition::B1)),
             0x8C => Some(Instruction::RES(PrefixTarget::H,BitPosition::B1)),
             0x8E => Some(Instruction::RES(PrefixTarget::HLI,BitPosition::B1)),
             0x8F => Some(Instruction::RES(PrefixTarget::A,BitPosition::B1)),
@@ -357,7 +359,7 @@ impl Instruction
         }
     }
 
-    fn from_byte_not_prefixed(byte: u8) -> Option<Instruction>
+  pub  fn from_byte_not_prefixed(byte: u8) -> Option<Instruction>
     {
         match byte
         {
@@ -386,7 +388,7 @@ impl Instruction
             0x16 => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::D, LoadByteSource::D8))),
             0x17 => Some(Instruction::RLA),
             0x18 => Some(Instruction::JR(JumpTest)),//refaire
-            0x19 => Some(Instruction::ADDHL(Instruction::ADDHL(ADDHLTarget::DE))),
+            0x19 => Some(Instruction::ADDHL(ADDHLTarget::DE)),
             0x1A => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::A, LoadByteSource::DE))),
             0x1B => Some(Instruction::DEC(IncDecTarget::DE)),
             0x1C => Some(Instruction::INC(IncDecTarget::E)),
@@ -591,7 +593,7 @@ impl Instruction
             0xDF => Some(Instruction::RST(RSTPosition::X18)),
             0xE0 => Some(Instruction::LDH(sourceA)),
             0xE1 => Some(Instruction::POP(StackTarget::HL)),
-            0xE2 => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::C, LoadByteSource::A))),
+            0xE2 => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::CC, LoadByteSource::A))),
             //0xD3 => Some(Instruction::JP(JumpTest::E)),
             //0xE4 => Some(Instruction::CALL(JumpTest::NC)),
             0xE5 => Some(Instruction::PUSH(StackTarget::HL)),

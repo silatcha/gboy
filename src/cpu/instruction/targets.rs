@@ -121,11 +121,12 @@ pub enum RSTPosition
     X38,
 }
 
-impl RSTPosition 
+impl std::convert::From<RSTPosition> for u16 
 {
-    pub fn to_hex(&self) -> u16 
-    {
-        match self 
+    
+    fn from(position: RSTPosition) -> u16 
+    { 
+        match position 
         {
             RSTPosition::X00 => 0x00,
             RSTPosition::X08 => 0x08,
@@ -137,6 +138,7 @@ impl RSTPosition
             RSTPosition::X38 => 0x38,
         }
     }
+   
 }
 
 // -------------------------------------------------------
@@ -175,6 +177,7 @@ pub enum LoadByteSource
     H,
     L,
     D8,
+    CC,
     BC,
     DE,
     HLI,

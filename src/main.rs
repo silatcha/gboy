@@ -2,14 +2,9 @@
 
 extern crate sdl2;
 use std::path::Path;
+mod cpu;
 
-
-mod cores;
-
-
-
-
-
+use cpu::CPU;
 
 
                     
@@ -39,7 +34,7 @@ fn main()
    // let mut rom = Vec::new();
 
     
-    //let cpu=CPU::new(rom, &rompath);
+    let cpu=CPU::new(rom, &rompath);
 
    
     // - initialise emulator App

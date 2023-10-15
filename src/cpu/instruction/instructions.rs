@@ -37,7 +37,6 @@ pub enum Instruction
     // 16-bit Arithmetic
     ADDHL(ADDHLTarget),
 
-    SUBHL(ADDHLTarget),
 
     ADDSP,
 
@@ -81,7 +80,7 @@ pub enum Instruction
 
     JPHL,
 
-    JPI,
+
 
 
     // Calls
@@ -355,6 +354,7 @@ impl Instruction
             0xFC => Some(Instruction::SET(PrefixTarget::H,BitPosition::B7)),
             0xFE => Some(Instruction::SET(PrefixTarget::HLI,BitPosition::B7)),
             0xFF => Some(Instruction::SET(PrefixTarget::A,BitPosition::B7)),
+           _  => todo!()
             
         }
     }
@@ -364,7 +364,7 @@ impl Instruction
         match byte
         {
             0x00 => Some(Instruction::NOP),
-            0x01 => Some(Instruction::LD(LoadType::Word(LoadWordTarget::BC))),//verif
+            0x01 => Some(Instruction::LD(LoadType::Word(LoadWordTarget::BC))),
             0x02 => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::BC, LoadByteSource::A))),
             0x03 => Some(Instruction::INC(IncDecTarget::BC)),
             0x04 => Some(Instruction::INC(IncDecTarget::B)),
@@ -387,7 +387,7 @@ impl Instruction
             0x15 => Some(Instruction::DEC(IncDecTarget::D)),
             0x16 => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::D, LoadByteSource::D8))),
             0x17 => Some(Instruction::RLA),
-            0x18 => Some(Instruction::JR(JumpTest)),//refaire
+            0x18 => Some(Instruction::JR(JumpTest::A)),//refaire
             0x19 => Some(Instruction::ADDHL(ADDHLTarget::DE)),
             0x1A => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::A, LoadByteSource::DE))),
             0x1B => Some(Instruction::DEC(IncDecTarget::DE)),
@@ -404,7 +404,7 @@ impl Instruction
             0x26 => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::H, LoadByteSource::D8))),
             0x27 => Some(Instruction::DAA),
             0x28 => Some(Instruction::JR(JumpTest::Z)),//refaire
-            0x29 => Some(Instruction::ADDHL(Instruction::ADDHL(ADDHLTarget::HL))),
+            0x29 => Some(Instruction::ADDHL(ADDHLTarget::HL)),
             0x2A => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::A, LoadByteSource::HLI))),
             0x2B => Some(Instruction::DEC(IncDecTarget::HL)),
             0x2C => Some(Instruction::INC(IncDecTarget::L)),
@@ -420,7 +420,7 @@ impl Instruction
             0x36 => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::HL, LoadByteSource::D8))),
             0x37 => Some(Instruction::SCF),
             0x38 => Some(Instruction::JR(JumpTest::C)),
-            0x39 => Some(Instruction::ADDHL(Instruction::ADDHL(ADDHLTarget::SP))),
+            0x39 => Some(Instruction::ADDHL(ADDHLTarget::SP)),
             0x3A => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::A, LoadByteSource::HLD))),
             0x3B => Some(Instruction::DEC(IncDecTarget::SP)),
             0x3C => Some(Instruction::INC(IncDecTarget::A)),
@@ -558,21 +558,18 @@ impl Instruction
             0xC0 => Some(Instruction::RET(JumpTest::NZ)),
             0xC1 => Some(Instruction::POP(StackTarget::BC)),
             0xC2 => Some(Instruction::JP(JumpTest::NZ)),
-            0xC3 => Some(Instruction::JP(JumpTest::E)),
+            0xC3 => Some(Instruction::JP(JumpTest::A)),
             0xC4 => Some(Instruction::CALL(JumpTest::NZ)),
             0xC5 => Some(Instruction::PUSH(StackTarget::BC)),
             0xC6 => Some(Instruction::ADD(ArithmeticTarget::D8)),
             0xC7 => Some(Instruction::RST(RSTPosition::X00)),
             0xC8 => Some(Instruction::RET(JumpTest::Z)),
-            0xC9 => Some(Instruction::RET(JumpTest)),// revoir
+            0xC9 => Some(Instruction::RET(JumpTest::A)),// revoir
             0xCA => Some(Instruction::JP(JumpTest::Z)),
 
-            0xCB => Some(Instruction::from_byte_prefixed(byte)),
-
-            0xCB => Some(Instruction::from_byte_prefixed(byte)),// pas d'idée
-
+            0xCB => Self::from_byte_prefixed(byte),
             0xCC => Some(Instruction::CALL(JumpTest::Z)),
-            0xCD => Some(Instruction::CALL(ArithmeticTarget::A)),// revoir
+            0xCD => Some(Instruction::CALL(JumpTest::A)),
             0xCE => Some(Instruction::ADC(ArithmeticTarget::D8)),
             0xCF => Some(Instruction::RST(RSTPosition::X08)),
             0xD0 => Some(Instruction::RET(JumpTest::NC)),
@@ -591,7 +588,7 @@ impl Instruction
             //0xDD => Some(Instruction::CALL(JumpTest)),// revoir
             0xDE => Some(Instruction::SBC(ArithmeticTarget::D8)),
             0xDF => Some(Instruction::RST(RSTPosition::X18)),
-            0xE0 => Some(Instruction::LDH(sourceA)),
+            0xE0 => Some(Instruction::LDHS(sourceA::A)),
             0xE1 => Some(Instruction::POP(StackTarget::HL)),
             0xE2 => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::CC, LoadByteSource::A))),
             //0xD3 => Some(Instruction::JP(JumpTest::E)),
@@ -603,13 +600,13 @@ impl Instruction
 
             0xE9 => Some(Instruction::JPHL),
 
-            0xEA => Some(Instruction::LD(JumpTest::C)),// pas d'idée
+            0xEA => Some(Instruction::LD(LoadType::AFromByteAddress)),// pas d'idée
             //0xDB => Some(Instruction::JP(JumpTest::Z)),// pas d'idée
             //0xEC => Some(Instruction::CALL(JumpTest::C)),
             //0xDD => Some(Instruction::CALL(JumpTest)),// revoir
             0xEE => Some(Instruction::XOR(ArithmeticTarget::D8)),
             0xEF => Some(Instruction::RST(RSTPosition::X28)),
-            0xF0 => Some(Instruction::LDH(targetA)),
+            0xF0 => Some(Instruction::LDH(targetA::A)),
             0xF1 => Some(Instruction::POP(StackTarget::AF)),
             0xF2 => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::A, LoadByteSource::C))),
 
@@ -621,7 +618,7 @@ impl Instruction
             0xF7 => Some(Instruction::RST(RSTPosition::X30)),
             0xF8 => Some(Instruction::LD(LoadType::HLFromSPN)),// revoir
             0xF9 => Some(Instruction::LD(LoadType::SPFromHL)),
-            0xFA => Some(Instruction::LD(LoadType::Word(LoadWordTarget::A))),// pas d'idée
+            0xFA => Some(Instruction::LD(LoadType::ByteAddressFromA)),// pas d'idée
 
             0xFB => Some(Instruction::EI),
 
@@ -629,6 +626,7 @@ impl Instruction
             //0xDD => Some(Instruction::CALL(JumpTest)),// revoir
             0xFE => Some(Instruction::CP(ArithmeticTarget::D8)),
             0xFF => Some(Instruction::RST(RSTPosition::X38)),
+            _ => todo!()
            
             
         }

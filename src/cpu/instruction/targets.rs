@@ -9,7 +9,8 @@ pub enum ArithmeticTarget
     E,
     H,
     L,
-    HL
+    HL,
+    D8
 
 }
 
@@ -24,12 +25,12 @@ pub enum ADDHLTarget
 
 pub enum targetA
 {
-    
+    A
 }
 
 pub enum sourceA
 {
-    
+  A  
 }
 
 // -------------------------------------------------------
@@ -156,7 +157,8 @@ pub enum LoadByteTarget
     DE,
     HLI,
     HLD,
-    HL
+    HL,
+    CC
 }
 
 pub enum LoadWordTarget 

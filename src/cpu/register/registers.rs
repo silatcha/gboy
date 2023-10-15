@@ -31,7 +31,7 @@ impl Registers
             F: FlagsRegister::new(),
             H: 0,
             L: 0,
-            SP:0
+            
         }
     }
 
@@ -51,7 +51,8 @@ impl Registers
     // AF:
     pub fn get_AF(&self) -> u16
     {
-        (self.A as u16) << 8 | (self.F as u16)
+        
+        (self.A as u16) << 8 | self.F.as_u16()
     }
 
     pub fn set_AF(&mut self, value: u16)

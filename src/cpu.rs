@@ -2,7 +2,6 @@
 
 
 mod register;
-use register::flags_register;
 pub mod instruction;
 mod mmu;
 
@@ -16,7 +15,8 @@ use self::instruction::targets::{
     LoadByteSource,
     LoadByteTarget,
     LoadType,
-    StackTarget, PrefixTarget, RSTPosition,
+    StackTarget, PrefixTarget, RSTPosition, IncDecTarget,
+    LoadWordTarget, targetA
 };
 
 use self::register::registers::Registers;
@@ -62,7 +62,7 @@ impl CPU
 
         // Check if the byte we read from memory is 0xCB, if it is, we read one
         // more byte and interpret the current as a "prefix instruction"
-        let prefixed = (instruction_byte == 0xCB);
+        let prefixed = instruction_byte == 0xCB;
 
         if prefixed
         {
@@ -101,61 +101,66 @@ impl CPU
                         let value = self.registers.C;
                         let new_value = self.add(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     },
                     ArithmeticTarget::B =>
                     {
                         let value = self.registers.B;
                         let new_value = self.add(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     },
                     ArithmeticTarget::A =>
                     {
                         let value = self.registers.A;
                         let new_value = self.add(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     },
                     ArithmeticTarget::D =>
                     {
                         let value = self.registers.D;
                         let new_value = self.add(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     },
                     ArithmeticTarget::E =>
                     {
                         let value = self.registers.E;
                         let new_value = self.add(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     },
                     ArithmeticTarget::H =>
                     {
                         let value = self.registers.H;
                         let new_value = self.add(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        
                     },
                     ArithmeticTarget::L =>
                     {
                         let value = self.registers.L;
                         let new_value = self.add(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     }
                     ArithmeticTarget::HL =>
                     {
                         let value = self.bus.read_byte( self.registers.get_HL());
                         let new_value = self.add(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        
+                    },
+                    ArithmeticTarget::D8 => {
+
+                        let new_value = self.add(self.read_next_byte());
+                        self.registers.A = new_value;
                     },
 
                 }
                 
-                   // self.add(addA);
+                self.program_counter.wrapping_add(1)
                 
             }
 
@@ -170,14 +175,14 @@ impl CPU
                         let value = self.registers.get_BC();
                         let new_value = self.addhl(value);
                         self.registers.set_HL(new_value);
-                        self.program_counter.wrapping_add(1)
+                        
                     },
                     ADDHLTarget::DE =>
                     {
                         let value = self.registers.get_DE();
                         let new_value = self.addhl(value);
                         self.registers.set_HL(new_value);
-                        self.program_counter.wrapping_add(1)
+                       
                     },
                    
                     ADDHLTarget::HL =>
@@ -185,20 +190,20 @@ impl CPU
                         let value = self.registers.get_HL();
                         let new_value = self.addhl(value);
                         self.registers.set_HL(new_value);
-                        self.program_counter.wrapping_add(1)
+                        
                     },
                     ADDHLTarget::SP =>
                     {
                         let value = self.stack_pointer;
                         let new_value = self.addhl(value);
                         self.registers.set_HL(new_value);
-                        self.program_counter.wrapping_add(1)
+                        
                     },
                     
-
+                  
                 }
                 
-                   
+                self.program_counter.wrapping_add(1)
                 
             }
 
@@ -241,7 +246,8 @@ impl CPU
                        },
                     PrefixTarget::HLI => {
                         let value =self.bus.read_byte(self.registers.get_HL());
-                        self.bus.write_byte(self.registers.get_HL(), self.res((bitPosition as BitPosition).into(),value));
+                        let val =self.res((bitPosition as BitPosition).into(),value);
+                        self.bus.write_byte( self.registers.get_HL(), val);
                         
                         },
                 };
@@ -286,8 +292,10 @@ impl CPU
                         self.registers.L=  self.rl(value);
                         },
                     PrefixTarget::HLI => {
+                        
                         let value =self.bus.read_byte( self.registers.get_HL());
-                        self.bus.write_byte(self.registers.get_HL(), self.rl(value));
+                        let val= self.rl(value);
+                        self.bus.write_byte(self.registers.get_HL(), val);
                         
                         },
                  };
@@ -333,7 +341,8 @@ impl CPU
                        },
                     PrefixTarget::HLI => {
                         let value =self.bus.read_byte(self.registers.get_HL());
-                        self.bus.write_byte(self.registers.get_HL(), self.rlc(value));
+                        let val=self.rlc(value);
+                        self.bus.write_byte(self.registers.get_HL(), val);
                         },
                  };
                 
@@ -377,8 +386,8 @@ impl CPU
                         },
                     PrefixTarget::HLI => {
                         let value =self.bus.read_byte(self.registers.get_HL());
-                        
-                        self.bus.write_byte(self.registers.get_HL(), self.rr(value));
+                        let val=self.rr(value);
+                        self.bus.write_byte(self.registers.get_HL(), val);
                     },
                  };
                 
@@ -423,8 +432,8 @@ impl CPU
                        },
                     PrefixTarget::HLI => {
                         let value =self.bus.read_byte(self.registers.get_HL());
-                        
-                        self.bus.write_byte(self.registers.get_HL(), self.rrc(value));
+                        let val=self.rrc(value);
+                        self.bus.write_byte(self.registers.get_HL(), val);
                         },
                  };
                 
@@ -489,8 +498,8 @@ impl CPU
                         },
                     PrefixTarget::HLI => {
                         let value =self.bus.read_byte(self.registers.get_HL());
-                        
-                        self.bus.write_byte(self.registers.get_HL(), self.set((bitPosition as BitPosition).into(),value));
+                        let val=self.set((bitPosition as BitPosition).into(),value);
+                        self.bus.write_byte(self.registers.get_HL(), val);
                         },
                 };
                
@@ -535,8 +544,8 @@ impl CPU
                        },
                     PrefixTarget::HLI => {
                         let value =self.bus.read_byte(self.registers.get_HL());
-                        
-                        self.bus.write_byte(self.registers.get_HL(), self.sla(value));
+                        let val=self.sla(value);
+                        self.bus.write_byte(self.registers.get_HL(), val);
                        },
                 };
                
@@ -581,8 +590,8 @@ impl CPU
                        },
                     PrefixTarget::HLI => {
                         let value =self.bus.read_byte(self.registers.get_HL());
-                        
-                        self.bus.write_byte(self.registers.get_HL(), self.sra(value));
+                        let val=self.sra(value);
+                        self.bus.write_byte(self.registers.get_HL(), val);
                        },
                 };
                
@@ -627,8 +636,8 @@ impl CPU
                         },
                     PrefixTarget::HLI => {
                         let value =self.bus.read_byte(self.registers.get_HL());
-                        
-                        self.bus.write_byte(self.registers.get_HL(), self.srl(value));
+                        let val=self.srl(value);
+                        self.bus.write_byte(self.registers.get_HL(), val);
                         },
                 };
                
@@ -673,8 +682,8 @@ impl CPU
                         },
                     PrefixTarget::HLI => {
                         let value =self.bus.read_byte(self.registers.get_HL());
-                        
-                        self.bus.write_byte(self.registers.get_HL(), self.swap(value));
+                        let val=self.swap(value);
+                        self.bus.write_byte(self.registers.get_HL(), val);
                         },
                 };
                
@@ -718,998 +727,722 @@ impl CPU
             }
             Instruction::CPL =>
             {
-                        self.registers.A = self.cpl();
+                        self.cpl();
                         self.program_counter.wrapping_add(1)
                  
                 
             }
             Instruction::DAA =>
             {
-                        self.registers.A = self.daa();
-                        self.program_counter.wrapping_add(1)
+                        self.daa();
+                        self.program_counter.wrapping_add(4)
                
                 
             }
             Instruction::ADC(target) =>
             {
-               let addc= match target
+               match target
                 {
                     ArithmeticTarget::C =>
                     {
                         let value = self.registers.C;
-                        let new_value = self.addc(value);
+                        let new_value = self.adc(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     },
                     ArithmeticTarget::B =>
                     {
                         let value = self.registers.B;
-                        let new_value = self.addc(value);
+                        let new_value = self.adc(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     },
                     ArithmeticTarget::A =>
                     {
                         let value = self.registers.A;
-                        let new_value = self.addc(value);
+                        let new_value = self.adc(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     },
                     ArithmeticTarget::D =>
                     {
                         let value = self.registers.D;
-                        let new_value = self.addc(value);
+                        let new_value = self.adc(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        
                     },
                     ArithmeticTarget::E =>
                     {
                         let value = self.registers.E;
-                        let new_value = self.addc(value);
+                        let new_value = self.adc(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        
                     },
                     ArithmeticTarget::H =>
                     {
                         let value = self.registers.H;
-                        let new_value = self.addc(value);
+                        let new_value = self.adc(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        
                     },
                     ArithmeticTarget::L =>
                     {
                         let value = self.registers.L;
-                        let new_value = self.addc(value);
+                        let new_value = self.adc(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        
                     },
                     ArithmeticTarget::HL =>
                     {
                         let value = self.bus.read_byte(self.registers.get_HL());
-                        let new_value = self.addc(value);
+                        let new_value = self.adc(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        
                     }
+                    ArithmeticTarget::D8 => {
+                        
+                        let new_value = self.adc(self.read_next_byte());
+                        self.registers.A = new_value;
+                    },
 
                 };
                 
-                    self.addc(addc)
+                self.program_counter.wrapping_add(4)
                 
             }
             // SUB
             Instruction::SUB(target) =>
             {
-               let subb= match target
+              match target
                 {
                     ArithmeticTarget::C =>
                     {
                         let value = self.registers.C;
                         let new_value = self.sub(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     },
                     ArithmeticTarget::B =>
                     {
                         let value = self.registers.B;
                         let new_value = self.sub(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     },
                     ArithmeticTarget::A =>
                     {
                         let value = self.registers.A;
                         let new_value = self.sub(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        
                     },
                     ArithmeticTarget::D =>
                     {
                         let value = self.registers.D;
                         let new_value = self.sub(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     },
                     ArithmeticTarget::E =>
                     {
                         let value = self.registers.E;
                         let new_value = self.sub(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        
                     },
                     ArithmeticTarget::H =>
                     {
                         let value = self.registers.H;
                         let new_value = self.sub(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        
                     },
                     ArithmeticTarget::L =>
                     {
                         let value = self.registers.L;
                         let new_value = self.sub(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        
                     },
                     ArithmeticTarget::HL =>
                     {
                         let value = self.bus.read_byte( self.registers.get_HL());
                         let new_value = self.sub(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        
                     }
+                    ArithmeticTarget::D8 => {
+                        let new_value = self.sub(self.read_next_byte());
+                        self.registers.A = new_value;
+                    },
 
                 };
                 
-                    self.sub(subb)
+                self.program_counter.wrapping_add(4)
                 
             }   
             // SBC
             Instruction::SBC(target) =>
             {
-               let sbc= match target
+               match target
                 {
                     ArithmeticTarget::C =>
                     {
                         let value = self.registers.C;
                         let new_value = self.sbc(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        
                     },
                     ArithmeticTarget::B =>
                     {
                         let value = self.registers.B;
                         let new_value = self.sbc(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        
                     },
                     ArithmeticTarget::A =>
                     {
                         let value = self.registers.A;
                         let new_value = self.sbc(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        
                     },
                     ArithmeticTarget::D =>
                     {
                         let value = self.registers.D;
                         let new_value = self.sbc(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        
                     },
                     ArithmeticTarget::E =>
                     {
                         let value = self.registers.E;
                         let new_value = self.sbc(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     },
                     ArithmeticTarget::H =>
                     {
                         let value = self.registers.H;
                         let new_value = self.sbc(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        
                     },
                     ArithmeticTarget::L =>
                     {
                         let value = self.registers.L;
                         let new_value = self.sbc(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        
                     },
                     ArithmeticTarget::HL =>
                     {
                         let value = self.bus.read_byte(self.registers.get_HL());
                         let new_value = self.sbc(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     }
+                    ArithmeticTarget::D8 => {
+                        let new_value = self.sbc(self.read_next_byte());
+                        self.registers.A = new_value;
+                    },
                 };
                 
-                    self.sbc(sbc)
+                self.program_counter.wrapping_add(1)
                 
             } 
             // AND
             Instruction::AND(target) =>
             {
-               let and= match target
+              match target
                 {
                     ArithmeticTarget::C =>
                     {
                         let value = self.registers.C;
                         let new_value = self.and(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     },
                     ArithmeticTarget::B =>
                     {
                         let value = self.registers.B;
                         let new_value = self.and(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                      
                     },
                     ArithmeticTarget::A =>
                     {
                         let value = self.registers.A;
                         let new_value = self.and(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     },
                     ArithmeticTarget::D =>
                     {
                         let value = self.registers.D;
                         let new_value = self.and(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                      
                     },
                     ArithmeticTarget::E =>
                     {
                         let value = self.registers.E;
                         let new_value = self.and(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                     
                     },
                     ArithmeticTarget::H =>
                     {
                         let value = self.registers.H;
                         let new_value = self.and(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     },
                     ArithmeticTarget::L =>
                     {
                         let value = self.registers.L;
                         let new_value = self.and(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     }
                     ArithmeticTarget::HL =>
                     {
                         let value = self.bus.read_byte(self.registers.get_HL());
                         let new_value = self.and(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                      
                     }
+                    ArithmeticTarget::D8 => {
+                        let new_value = self.and(self.read_next_byte());
+                        self.registers.A = new_value;
+                    },
 
                 };
                 
-                    self.and(and)
+                self.program_counter.wrapping_add(1)
                 
             }
             // OR
             Instruction::OR(target) =>
             {
-               let or= match target
+              match target
                 {
                     ArithmeticTarget::C =>
                     {
                         let value = self.registers.C;
                         let new_value = self.or(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     },
                     ArithmeticTarget::B =>
                     {
                         let value = self.registers.B;
                         let new_value = self.or(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     },
                     ArithmeticTarget::A =>
                     {
                         let value = self.registers.A;
                         let new_value = self.or(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     },
                     ArithmeticTarget::D =>
                     {
                         let value = self.registers.D;
                         let new_value = self.or(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        
                     },
                     ArithmeticTarget::E =>
                     {
                         let value = self.registers.E;
                         let new_value = self.or(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        
                     },
                     ArithmeticTarget::H =>
                     {
                         let value = self.registers.H;
                         let new_value = self.or(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     },
                     ArithmeticTarget::L =>
                     {
                         let value = self.registers.L;
                         let new_value = self.or(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     }
+                    ArithmeticTarget::HL =>
+                    {
+                        let value = self.bus.read_byte(self.registers.get_HL());
+                        let new_value = self.or(value);
+                        self.registers.A = new_value;
+                       
+                    }
+                    ArithmeticTarget::D8 => {
+                        let new_value = self.or(self.read_next_byte());
+                        self.registers.A = new_value;
+                    },
 
                 };
                 
-                    self.or(and)
+                self.program_counter.wrapping_add(4)
                 
             }
             // XOR
             Instruction::XOR(target) =>
             {
-               let xor= match target
+                match target
                 {
                     ArithmeticTarget::C =>
                     {
                         let value = self.registers.C;
                         let new_value = self.xor(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        
                     },
                     ArithmeticTarget::B =>
                     {
                         let value = self.registers.B;
                         let new_value = self.xor(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        
                     },
                     ArithmeticTarget::A =>
                     {
                         let value = self.registers.A;
                         let new_value = self.xor(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     },
                     ArithmeticTarget::D =>
                     {
                         let value = self.registers.D;
                         let new_value = self.xor(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     },
                     ArithmeticTarget::E =>
                     {
                         let value = self.registers.E;
                         let new_value = self.xor(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     },
                     ArithmeticTarget::H =>
                     {
                         let value = self.registers.H;
                         let new_value = self.xor(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     },
                     ArithmeticTarget::L =>
                     {
                         let value = self.registers.L;
                         let new_value = self.xor(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                      
                     }
+                    ArithmeticTarget::HL => {
+                        let value = self.bus.read_byte(self.registers.get_HL());
+                        let new_value = self.xor(value);
+                        self.registers.A = new_value;
+                    }
+                    ArithmeticTarget::D8 => {
+                        let new_value = self.xor(self.read_next_byte());
+                        self.registers.A = new_value;
+                    },
 
                 };
                 
-                    self.xor(and)
+                self.program_counter.wrapping_add(4)
                 
             }
             // CP 
             Instruction::CP(target) =>
             {
-               let xor= match target
+               match target
                 {
                     ArithmeticTarget::C =>
                     {
-                        let value = self.registers.C;
-                        let new_value = self.cp(value);
-                        self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
+                         self.cp(self.registers.C);
+                        
+                        
                     },
                     ArithmeticTarget::B =>
                     {
-                        let value = self.registers.B;
-                        let new_value = self.cp(value);
-                        self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        self.cp(self.registers.B);
+                        
+                        
                     },
                     ArithmeticTarget::A =>
                     {
-                        let value = self.registers.A;
-                        let new_value = self.cp(value);
-                        self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        self.cp(self.registers.A);
                     },
                     ArithmeticTarget::D =>
                     {
-                        let value = self.registers.D;
-                        let new_value = self.cp(value);
-                        self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        self.cp(self.registers.D);
                     },
                     ArithmeticTarget::E =>
                     {
-                        let value = self.registers.E;
-                        let new_value = self.cp(value);
-                        self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        self.cp(self.registers.E);
                     },
                     ArithmeticTarget::H =>
                     {
-                        let value = self.registers.H;
-                        let new_value = self.cp(value);
-                        self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        self.cp(self.registers.H);
                     },
                     ArithmeticTarget::L =>
                     {
-                        let value = self.registers.L;
-                        let new_value = self.cp(value);
-                        self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        self.cp(self.registers.L);
                     }
+                    ArithmeticTarget::HL =>
+                    {
+                        self.cp(self.bus.read_byte(self.registers.get_HL()));
+                    },
+                    ArithmeticTarget::D8 => {
+                        self.read_next_byte();
+                        
+                    },
 
                 };
                 
-                    self.cp(and)
+                self.program_counter.wrapping_add(4)
                 
             }
             // INCREMENT 
             Instruction::INC(target) =>
             {
-               let inc= match target
+               match target
                 {
-                    ArithmeticTarget::C =>
+                    IncDecTarget::C =>
                     {
-                        let value = self.registers.C;
-                        let new_value = self.inc(value);
-                        self.registers.C = new_value;
-                        self.program_counter.wrapping_add(1)
+                        self.registers.C.wrapping_add(1);
+                      
+                        
                     },
-                    ArithmeticTarget::B =>
+                    IncDecTarget::B =>
                     {
-                        let value = self.registers.B;
-                        let new_value = self.inc(value);
-                        self.registers.B = new_value;
-                        self.program_counter.wrapping_add(1)
+                        self.registers.B.wrapping_add(1);
+                        
+                       
                     },
-                    ArithmeticTarget::A =>
+                    IncDecTarget::A =>
                     {
-                        let value = self.registers.A;
-                        let new_value = self.inc(value);
-                        self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                     self.registers.A.wrapping_add(1);
+                        
+                       
                     },
-                    ArithmeticTarget::D =>
+                    IncDecTarget::D =>
                     {
-                        let value = self.registers.D;
-                        let new_value = self.inc(value);
-                        self.registers.D = new_value;
-                        self.program_counter.wrapping_add(1)
+                      self.registers.D.wrapping_add(1);
+                       
+                       
                     },
-                    ArithmeticTarget::E =>
+                    IncDecTarget::E =>
                     {
-                        let value = self.registers.E;
-                        let new_value = self.inc(value);
-                        self.registers.E = new_value;
-                        self.program_counter.wrapping_add(1)
+                       self.registers.E.wrapping_add(1);
+                      
+                       
                     },
-                    ArithmeticTarget::H =>
+                    IncDecTarget::H =>
                     {
-                        let value = self.registers.H;
-                        let new_value = self.inc(value);
-                        self.registers.H = new_value;
-                        self.program_counter.wrapping_add(1)
+                        self.registers.H.wrapping_add(1);
+                        
+                       
                     },
-                    ArithmeticTarget::L =>
+                    IncDecTarget::L =>
                     {
-                        let value = self.registers.L;
-                        let new_value = self.inc(value);
-                        self.registers.L = new_value;
-                        self.program_counter.wrapping_add(1)
+                        self.registers.L.wrapping_add(1);
+                       
+                       
                     },
-                    ArithmeticTarget::HLI =>
+                    IncDecTarget::HLI =>
                     {
-                        let value = self.registers.HLI;
-                        let new_value = self.inchl(value);
-                        self.registers.HLI = new_value;
-                        self.program_counter.wrapping_add(1)
+                         self.bus.write_byte(self.registers.get_HL(),self.bus.read_byte(self.registers.get_HL().wrapping_add(1)));
+                       
+                       
                     },
-                    ArithmeticTarget::BC =>
+                    IncDecTarget::BC =>
                     {
-                        let value = self.registers.BC;
-                        let new_value = self.inchl(value);
-                        self.registers.BC = new_value;
-                        self.program_counter.wrapping_add(1)
+                        self.registers.set_BC(self.registers.get_BC().wrapping_add(1));
+                        
+                       
                     },
-                    ArithmeticTarget::DE =>
+                    IncDecTarget::DE =>
                     {
-                        let value = self.registers.DE;
-                        let new_value = self.inchl(value);
-                        self.registers.DE = new_value;
-                        self.program_counter.wrapping_add(1)
+                        self.registers.set_DE(self.registers.get_DE().wrapping_add(1));
+                        
                     },
-                    ArithmeticTarget::DE =>
+                    
+                    IncDecTarget::HL =>
                     {
-                        let value = self.registers.DE;
-                        let new_value = self.inchl(value);
-                        self.registers.DE = new_value;
-                        self.program_counter.wrapping_add(1)
+                        self.registers.set_HL(self.registers.get_HL().wrapping_add(1));
+                      
                     },
-                    ArithmeticTarget::HL =>
+                    IncDecTarget::SP =>
                     {
-                        let value = self.registers.HL;
-                        let new_value = self.inchl(value);
-                        self.registers.HL = new_value;
-                        self.program_counter.wrapping_add(1)
-                    },
-                    ArithmeticTarget::SP =>
-                    {
-                        let value = self.registers.SP;
-                        let new_value = self.inchl(value);
-                        self.registers.SP = new_value;
-                        self.program_counter.wrapping_add(1)
+                        self.stack_pointer.wrapping_add(1);
+                        
+                        
                     }
 
                 };
                 
-                    self.inc(inc)
+                self.program_counter.wrapping_add(1)
                 
             }
             // DECREMENT 
             Instruction::DEC(target) =>
             {
-               let dec= match target
+                match target
                 {
-                    ArithmeticTarget::C =>
+                    IncDecTarget::C =>
                     {
                         let value = self.registers.C;
                         let new_value = self.dec(value);
                         self.registers.C = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     },
-                    ArithmeticTarget::B =>
+                    IncDecTarget::B =>
                     {
                         let value = self.registers.B;
                         let new_value = self.dec(value);
                         self.registers.B = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     },
-                    ArithmeticTarget::A =>
+                    IncDecTarget::A =>
                     {
                         let value = self.registers.A;
                         let new_value = self.dec(value);
                         self.registers.A = new_value;
-                        self.program_counter.wrapping_add(1)
+                        
                     },
-                    ArithmeticTarget::D =>
+                    IncDecTarget::D =>
                     {
                         let value = self.registers.D;
                         let new_value = self.dec(value);
                         self.registers.D = new_value;
-                        self.program_counter.wrapping_add(1)
+                        
                     },
-                    ArithmeticTarget::E =>
+                    IncDecTarget::E =>
                     {
                         let value = self.registers.E;
                         let new_value = self.dec(value);
                         self.registers.E = new_value;
-                        self.program_counter.wrapping_add(1)
+                        
                     },
-                    ArithmeticTarget::H =>
+                    IncDecTarget::H =>
                     {
                         let value = self.registers.H;
                         let new_value = self.dec(value);
                         self.registers.H = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     },
-                    ArithmeticTarget::L =>
+                    IncDecTarget::L =>
                     {
                         let value = self.registers.L;
                         let new_value = self.dec(value);
                         self.registers.L = new_value;
-                        self.program_counter.wrapping_add(1)
+                       
                     },
-                    ArithmeticTarget::HLI =>
+                    IncDecTarget::HLI =>
                     {
-                        let value = self.registers.HLI;
-                        let new_value = self.dechl(value);
-                        self.registers.HLI = new_value;
-                        self.program_counter.wrapping_add(1)
+                        self.bus.write_byte(self.registers.get_HL(),self.bus.read_byte(self.registers.get_HL().wrapping_add(1)));
+                        let value = self.bus.read_byte(self.registers.get_HL());
+                        self.dec(value);
+                        self.bus.write_byte(self.registers.get_HL(),value);
+                        
                     },
-                    ArithmeticTarget::BC =>
+                    IncDecTarget::BC =>
                     {
-                        let value = self.registers.BC;
+                        let value = self.registers.get_BC();
                         let new_value = self.dechl(value);
-                        self.registers.BC = new_value;
-                        self.program_counter.wrapping_add(1)
+                        self.registers.set_BC( new_value);
+                        
                     },
-                    ArithmeticTarget::DE =>
+                    IncDecTarget::DE =>
                     {
-                        let value = self.registers.DE;
+                        let value = self.registers.get_DE();
                         let new_value = self.dechl(value);
-                        self.registers.DE = new_value;
-                        self.program_counter.wrapping_add(1)
+                        self.registers.set_DE(new_value);
+                       
                     },
-                    ArithmeticTarget::DE =>
+                   
+                    IncDecTarget::HL =>
                     {
-                        let value = self.registers.DE;
+                        let value = self.registers.get_HL();
                         let new_value = self.dechl(value);
-                        self.registers.DE = new_value;
-                        self.program_counter.wrapping_add(1)
+                        self.registers.set_HL(new_value);
+                        
                     },
-                    ArithmeticTarget::HL =>
+                    IncDecTarget::SP =>
                     {
-                        let value = self.registers.HL;
+                        let value = self.stack_pointer;
                         let new_value = self.dechl(value);
-                        self.registers.HL = new_value;
-                        self.program_counter.wrapping_add(1)
-                    },
-                    ArithmeticTarget::SP =>
-                    {
-                        let value = self.registers.SP;
-                        let new_value = self.dechl(value);
-                        self.registers.SP = new_value;
-                        self.program_counter.wrapping_add(1)
+                        self.stack_pointer = new_value;
+                        
                     }
 
                 };
                 
-                    self.dec(inc)
+                self.program_counter.wrapping_add(1)
                 
             }
             // BIT OPERATION 
             Instruction::BIT(target1, target2) =>
             {
-               let (r,b)= match (target1, target2)
+                match target1
                 {
-                    (PrefixTarget::C, BitPosition::B0) =>
+                    PrefixTarget::C =>
                     {                       
-                        let new_value = self.bit_generic(self.registers.C, 0);                        
-                        self.program_counter.wrapping_add(1)
+                        self.bit(self.registers.C, (target2 as BitPosition).into());                        
+                       
                     },
-                    (PrefixTarget::B, BitPosition::B0) =>
+                    PrefixTarget::B =>
                     {
-                        let new_value = self.bit_generic(self.registers.B, 0);                        
-                        self.program_counter.wrapping_add(1)
+                        self.bit(self.registers.B, (target2 as BitPosition).into());                        
+                     
                     },
-                    (PrefixTarget::A, BitPosition::B0) =>
+                    PrefixTarget::A =>
                     {
-                        let new_value = self.bit_generic(self.registers.A, 0);                        
-                        self.program_counter.wrapping_add(1)
+                        self.bit(self.registers.A, (target2 as BitPosition).into());                        
+                       
                     },
-                    (PrefixTarget::D, BitPosition::B0)=>
+                    PrefixTarget::D=>
                     {
-                        let new_value = self.bit_generic(self.registers.D, 0);                        
-                        self.program_counter.wrapping_add(1)
+                       self.bit(self.registers.D, (target2 as BitPosition).into());                        
+                        
                     },
-                    (PrefixTarget::E, BitPosition::B0) =>
+                    PrefixTarget::E=>
                     {
-                        let new_value = self.bit_generic(self.registers.E, 0);                        
-                        self.program_counter.wrapping_add(1)
+                       self.bit(self.registers.E, (target2 as BitPosition).into());                        
+                        
                     },
-                    (PrefixTarget::H, BitPosition::B0) =>
+                    PrefixTarget::H=>
                     {
-                        let new_value = self.bit_generic(self.registers.H, 0);                        
-                        self.program_counter.wrapping_add(1)
+                       self.bit(self.registers.H, (target2 as BitPosition).into());                        
+                        
                     },
-                    (PrefixTarget::L, BitPosition::B0) =>
+                    PrefixTarget::L =>
                     {
-                        let new_value = self.bit_generic(self.registers.L, 0);                        
-                        self.program_counter.wrapping_add(1)
+                        self.bit(self.registers.L, (target2 as BitPosition).into());                        
+                        
                     },
-                    (PrefixTarget::HL, BitPosition::B0) =>
+                    PrefixTarget::HLI =>
                     {
-                        let new_value = self.bit_generic2(self.registers.get_HL(), 0);                        
-                        self.program_counter.wrapping_add(1)
+                       self.bit(self.bus.read_byte(self.registers.get_HL()), (target2 as BitPosition).into());                        
+                        
                     },
-                    (PrefixTarget::C, BitPosition::B1) =>
-                    {                       
-                        let new_value = self.bit_generic(self.registers.C, 1);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::B, BitPosition::B1) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.B, 1);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::A, BitPosition::B1) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.A, 1);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::D, BitPosition::B1)=>
-                    {
-                        let new_value = self.bit_generic(self.registers.D, 1);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::E, BitPosition::B1) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.E, 1);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::H, BitPosition::B1) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.H, 1);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::L, BitPosition::B1) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.L, 1);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::HL, BitPosition::B1) =>
-                    {
-                        let new_value = self.bit_generic2(self.registers.get_HL(), 1);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::C, BitPosition::B2) =>
-                    {                       
-                        let new_value = self.bit_generic(self.registers.C, 2);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::B, BitPosition::B2) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.B, 2);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::A, BitPosition::B2) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.A, 2);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::D, BitPosition::B2)=>
-                    {
-                        let new_value = self.bit_generic(self.registers.D, 2);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::E, BitPosition::B2) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.E, 2);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::H, BitPosition::B2) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.H, 2);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::L, BitPosition::B2) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.L, 2);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::HL, BitPosition::B2) =>
-                    {
-                        let new_value = self.bit_generic2(self.registers.get_HL(), 2);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::C, BitPosition::B3) =>
-                    {                       
-                        let new_value = self.bit_generic(self.registers.C, 3);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::B, BitPosition::B3) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.B, 3);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::A, BitPosition::B3) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.A, 3);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::D, BitPosition::B3)=>
-                    {
-                        let new_value = self.bit_generic(self.registers.D, 3);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::E, BitPosition::B3) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.E, 3);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::H, BitPosition::B3) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.H, 3);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::L, BitPosition::B3) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.L, 3);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::HL, BitPosition::B3) =>
-                    {
-                        let new_value = self.bit_generic2(self.registers.get_HL(), 3);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::C, BitPosition::B4) =>
-                    {                       
-                        let new_value = self.bit_generic(self.registers.C, 4);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::B, BitPosition::B4) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.B, 4);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::A, BitPosition::B4) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.A, 4);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::D, BitPosition::B4)=>
-                    {
-                        let new_value = self.bit_generic(self.registers.D, 4);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::E, BitPosition::B4) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.E, 4);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::H, BitPosition::B4) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.H, 4);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::L, BitPosition::B4) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.L, 4);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::HL, BitPosition::B4) =>
-                    {
-                        let new_value = self.bit_generic2(self.registers.get_HL(), 4);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::C, BitPosition::B5) =>
-                    {                       
-                        let new_value = self.bit_generic(self.registers.C, 5);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::B, BitPosition::B5) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.B, 5);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::A, BitPosition::B5) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.A, 5);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::D, BitPosition::B5)=>
-                    {
-                        let new_value = self.bit_generic(self.registers.D, 5);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::E, BitPosition::B5) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.E, 5);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::H, BitPosition::B5) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.H, 5);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::L, BitPosition::B5) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.L, 5);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::HL, BitPosition::B5) =>
-                    {
-                        let new_value = self.bit_generic2(self.registers.get_HL(), 5);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::C, BitPosition::B6) =>
-                    {                       
-                        let new_value = self.bit_generic(self.registers.C, 6);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::B, BitPosition::B6) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.B, 6);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::A, BitPosition::B6) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.A, 6);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::D, BitPosition::B6)=>
-                    {
-                        let new_value = self.bit_generic(self.registers.D, 6);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::E, BitPosition::B6) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.E, 6);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::H, BitPosition::B6) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.H, 6);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::L, BitPosition::B6) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.L, 6);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::HL, BitPosition::B6) =>
-                    {
-                        let new_value = self.bit_generic2(self.registers.get_HL(), 6);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::C, BitPosition::B7) =>
-                    {                       
-                        let new_value = self.bit_generic(self.registers.C, 7);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::B, BitPosition::B7) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.B, 7);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::A, BitPosition::B7) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.A, 7);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::D, BitPosition::B7)=>
-                    {
-                        let new_value = self.bit_generic(self.registers.D, 7);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::E, BitPosition::B7) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.E, 7);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::H, BitPosition::B7) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.H, 7);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::L, BitPosition::B7) =>
-                    {
-                        let new_value = self.bit_generic(self.registers.L, 7);                        
-                        self.program_counter.wrapping_add(1)
-                    },
-                    (PrefixTarget::HL, BitPosition::B7) =>
-                    {
-                        let new_value = self.bit_generic2(self.registers.get_HL(), 7);                        
-                        self.program_counter.wrapping_add(1)
-                    }
                     
 
                 };
                 
-                    self.bit_generic(r, b)
+                self.program_counter.wrapping_add(2)
                 
             }
             // JP
@@ -1717,145 +1450,136 @@ impl CPU
             {
                 let jump_condition = match target
                 {
-                    JumpTest::NZ => 
-                    {
-                        self.jp_nz_nn();                       
-                    },
-                    JumpTest::NC => 
-                    {
-                        self.jp_nc_nn();                 
-                    },
-                    JumpTest::Z  => 
-                    {
-                        self.jp_z_nn();                    
-                    },
-                    JumpTest::C  => 
-                    {
-                        self.jp_c_nn();
-                    },
-                    JumpTest::A  => 
-                    {                        
-                        self.jp_nn();    
-                    }
+                  
+                        JumpTest::NZ => !self.registers.F.zero,
+                        JumpTest::Z => self.registers.F.zero,
+                        JumpTest::C => self.registers.F.carry,
+                        JumpTest::A => true,
+                        JumpTest::NC => !self.registers.F.carry,
                 };
-                self.jump(jump_condition)
+                    self.jump(jump_condition)
+            }
+
+            // JPHL
+            Instruction::JPHL =>
+            {
+               
+                    self.jp_nz_nn();
+                    self.program_counter.wrapping_add(1)
             }
             // JR
             Instruction::JR(target) =>
             {
                 let jump_condition = match target
                 {
-                    JumpTest::NZ => 
-                    {
-                        self.jr_nz_sn();                       
-                    },
-                    JumpTest::NC => 
-                    {
-                        self.jr_nc_sn();                 
-                    },
-                    JumpTest::Z  => 
-                    {
-                        self.jr_z_sn();                    
-                    },
-                    JumpTest::C  => 
-                    {
-                        self.jr_c_sn();
-                    },
-                    JumpTest::A  => 
-                    {                        
-                        self.jp_sn();    
-                    }
+                  
+                        JumpTest::NZ => !self.registers.F.zero,
+                        JumpTest::Z => self.registers.F.zero,
+                        JumpTest::C => self.registers.F.carry,
+                        JumpTest::A => true,
+                        JumpTest::NC => !self.registers.F.carry,
                 };
-                self.jump(jump_condition)
+
+                self.jr_nc_sn(jump_condition)
             }
-            Instruction::JPHL =>
-            {
-                self.jp_hl()               
-            }
+
+
             // LD
             Instruction::LD(load_type) =>
             {
-                LoadType::Byte(target, source) =>
-                {
-                    let source_value = match source
+                match load_type   {
+                    LoadType::Byte(target, source) =>
                     {
-                        LoadByteSource::A => self.registers.A,
-                        LoadByteSource::B => self.registers.B,
-                        LoadByteSource::C => self.registers.C,
-                        LoadByteSource::D => self.registers.D,
-                        LoadByteSource::E => self.registers.E,
-                        LoadByteSource::H => self.registers.H,
-                        LoadByteSource::L => self.registers.L,
-                        LoadByteSource::BC => self.registers.get_BC(),
-                        LoadByteSource::DE => self.registers.get_HL(),
-                        LoadByteSource::HL => self.registers.get_HL(),
-                        LoadByteSource::D8 => self.read_next_byte(),
-                       // LoadByteSource:: => self.registers.C,
-                        LoadByteSource::HLD => self.bus.read_byte(self.registers.get_HL()),
-                        LoadByteSource::HLI => self.bus.read_byte(self.registers.get_HL())                       
-                    };
-                    match target
-                    {
-                        LoadByteTarget::A => self.registers.A = source_value,
-                        LoadByteTarget::B => self.registers.B = source_value,
-                        LoadByteTarget::C => self.registers.C = source_value,
-                        LoadByteTarget::D => self.registers.D = source_value,
-                        LoadByteTarget::E => self.registers.E = source_value,
-                        LoadByteTarget::H => self.registers.H = source_value,
-                        LoadByteTarget::L => self.registers.L = source_value,
-                        LoadByteTarget::HLI => self.bus.write_byte(self.registers.get_HL(), source_value),
-                        _ =>
+                        let source_value = match source
                         {
-                            // TODO: implement other targets
+                            LoadByteSource::A => self.registers.A,
+                            LoadByteSource::B => self.registers.B,
+                            LoadByteSource::C => self.registers.C,
+                            LoadByteSource::D => self.registers.D,
+                            LoadByteSource::E => self.registers.E,
+                            LoadByteSource::H => self.registers.H,
+                            LoadByteSource::L => self.registers.L,
+                            LoadByteSource::BC => self.bus.read_byte(self.registers.get_BC()),
+                            LoadByteSource::DE => self.bus.read_byte(self.registers.get_DE()),
+                            LoadByteSource::HL => self.bus.read_byte(self.registers.get_HL()),
+                            LoadByteSource::D8 => self.read_next_byte(),
+                            LoadByteSource::HLD => self.bus.read_byte(self.registers.get_HL()),
+                            LoadByteSource::HLI => self.bus.read_byte(self.registers.get_HL()),
+                            LoadByteSource::CC => self.bus.read_byte(self.registers.C as u16),                       
+                        };
+                        match target
+                        {
+                            LoadByteTarget::A => self.registers.A = source_value,
+                            LoadByteTarget::B => self.registers.B = source_value,
+                            LoadByteTarget::C => self.registers.C = source_value,
+                            LoadByteTarget::D => self.registers.D = source_value,
+                            LoadByteTarget::E => self.registers.E = source_value,
+                            LoadByteTarget::H => self.registers.H = source_value,
+                            LoadByteTarget::L => self.registers.L = source_value,
+                            LoadByteTarget::HLI => self.bus.write_byte(self.registers.get_HL(), source_value),
+                            LoadByteTarget::BC => self.bus.write_byte(self.registers.get_BC(), source_value),
+                            LoadByteTarget::DE => self.bus.write_byte(self.registers.get_DE(), source_value),
+                            LoadByteTarget::HL => self.bus.write_byte(self.registers.get_HL(), source_value),
+                            LoadByteTarget::HLD => self.bus.write_byte(self.registers.get_HL(), source_value),
+                            LoadByteTarget::CC => self.bus.write_byte(self.registers.C as u16, source_value),           
+                            
+                        };
+                        match source
+                        {
+                            LoadByteSource::D8  => self.program_counter.wrapping_add(2),
+                            _                   => self.program_counter.wrapping_add(1),
+                            LoadByteSource::A => self.program_counter.wrapping_add(1),
+                            LoadByteSource::B => self.program_counter.wrapping_add(1),
+                            LoadByteSource::C => self.program_counter.wrapping_add(1),
+                            LoadByteSource::D => self.program_counter.wrapping_add(1),
+                            LoadByteSource::E => self.program_counter.wrapping_add(1),
+                            LoadByteSource::H => self.program_counter.wrapping_add(1),
+                            LoadByteSource::L => self.program_counter.wrapping_add(1),
+                            LoadByteSource::BC => self.program_counter.wrapping_add(1),
+                            LoadByteSource::DE => self.program_counter.wrapping_add(1),
+                            LoadByteSource::HL => self.program_counter.wrapping_add(1),
+                            
+                            LoadByteSource::HLD => self.program_counter.wrapping_add(1),
+                            LoadByteSource::HLI => self.program_counter.wrapping_add(1),
+                            LoadByteSource::CC => {
+                                self.program_counter.wrapping_add(2)
+                            }  
                         }
-                    };
-                    match source
-                    {
-                        LoadByteSource::D8  => self.program_counter.wrapping_add(2),
-                        _                   => self.program_counter.wrapping_add(1),
+                        
                     }
-                    
+                    LoadType::Word(target) => {
+                        match target
+                        {
+                            LoadWordTarget::BC => self.bus.write_byte(self.registers.C as u16,self.bus.read_byte(self.registers.get_BC())),  
+                            LoadWordTarget::DE => self.bus.write_byte(self.read_next_word(), self.bus.read_byte(self.registers.get_DE())) ,
+                            LoadWordTarget::HL => self.bus.write_byte(self.read_next_word(), self.bus.read_byte(self.registers.get_HL())) ,
+                           LoadWordTarget::SP => self.bus.write_byte(self.read_next_word(), self.bus.read_byte(self.stack_pointer)) ,
+                        }
+                        self.program_counter.wrapping_add(3)
+                    },
+                    LoadType::AFromIndirect(_) => todo!(),
+                    LoadType::IndirectFromA(_) => todo!(),
+                    LoadType::AFromByteAddress => {
+                        self.bus.write_byte(self.registers.A as u16, self.registers.A);
+                        self.program_counter.wrapping_add(3)
+                    },
+                    LoadType::ByteAddressFromA => {
+                        self.registers.A= self.bus.read_byte(self.registers.A as u16);
+                        self.program_counter.wrapping_add(3)
+                    },
+                    LoadType::SPFromHL => todo!(),
+                    LoadType::HLFromSPN => todo!(),
+                    LoadType::IndirectFromSP => todo!(),
                 }
+               
             }
             // CALL
-            Instruction::CALL(target) =>
-            {
-                let jump_condition = match target
-                {
-                    JumpTest::NZ => 
-                    { 
-                        if !self.registers.F.zero 
-                        {
-                            self.program_counter = self.call(!self.registers.F.zero);
-                        }
-                    },
-                    JumpTest::Z => 
-                    { 
-                        if self.registers.F.zero 
-                        {
-                            self.program_counter = self.call(self.registers.F.zero);
-                        }
-                    },
-                    JumpTest::NC => 
-                    {
-                       if !self.registers.F.carry
-                       {
-                        self.program_counter = self.call(!self.registers.F.carry);
-                       }
-                    },
-                    JumpTest::C => 
-                    {
-                       if self.registers.F.carry
-                       {
-                        self.program_counter = self.call(self.registers.F.carry);
-                       }
-                    },
-                    JumpTest::A => 
-                    {
-                        self.program_counter = self.call(true);
-                    }
-                  };
-                    self.call(jump_condition)                
+            Instruction::CALL(test) => {
+                let jump_condition = match test {
+                    JumpTest::NZ => !self.registers.F.zero,
+                    _ => { panic!("TODO: support more conditions") }
+                };
+                self.call(jump_condition)
             }
             // RET
             Instruction::RET(target) =>
@@ -1874,20 +1598,9 @@ impl CPU
                 self.return_(jump_condition)
             }
 
-            Instruction::RETI(target) =>
+            Instruction::RETI =>
             {
-                let jump_condition = match target
-                {
-                   
-                    JumpTest::NZ => !self.registers.F.zero,
-                    JumpTest::NC => !self.registers.F.carry,
-                    JumpTest::Z  => !self.registers.F.zero,
-                    JumpTest::C  => !self.registers.F.carry,
-                    JumpTest::A  => true
-            
-                };
-
-                self.reti(jump_condition)
+                self.reti()
             }
             // PUSH
             Instruction::PUSH(target) =>
@@ -1895,25 +1608,26 @@ impl CPU
                 let value = match target
                 {
                     StackTarget::BC => {
-                        self.registers.get_BC();
-                        self.program_counter.wrapping_add(1);
+                        self.registers.get_BC()
+                      
                     },
                     StackTarget::DE => {
-                        self.registers.get_DE();
-                        self.program_counter.wrapping_add(1);
+                        self.registers.get_DE()
+                       
                     },
                     StackTarget::HL => {
-                        self.registers.get_HL();
-                        self.program_counter.wrapping_add(1)
+                        self.registers.get_HL()
+                       
                     },
                     StackTarget::AF => {
-                        self.registers.get_AF();
-                        self.program_counter.wrapping_add(1);
+                        self.registers.get_AF()
+                       
                     },
                     //self.program_counter.wrapping_add(1);
                     
                 };
                 self.push(value);
+                self.program_counter.wrapping_add(1)
             }
             // POP
             Instruction::POP(target) =>
@@ -1930,45 +1644,131 @@ impl CPU
                 
                     self.program_counter.wrapping_sub(1)
                 }
-            }
+            },
 
             // DI
             Instruction::DI =>
             {
                 self.di();
-            }
+                self.program_counter.wrapping_add(1)
+            },
             // EI
             Instruction::DI =>
             {
                 self.ei();
-            }
+                self.program_counter.wrapping_add(1)
+            },
 
             // halte
-            Instruction::DI =>
+            Instruction::HALT =>
             {
                 self.halte();
-            }
+                self.program_counter.wrapping_add(1)
+            },
+
+            Instruction::STOP =>
+            {
+                
+                self.program_counter.wrapping_add(2)
+            },
+
+            Instruction::NOP =>
+            {
+                
+                self.program_counter.wrapping_add(1)
+            },
+
+            Instruction::RRA =>
+            {
+             self.rra();   
+                self.program_counter.wrapping_add(1)
+            },
+
+            Instruction::RRCA =>
+            {
+             self.rrca();   
+                self.program_counter.wrapping_add(1)
+            },
+
+            Instruction::RLA =>
+            {
+             self.rla();   
+                self.program_counter.wrapping_add(1)
+            },
+
+            Instruction::RLCA =>
+            {
+             self.rlca();   
+                self.program_counter.wrapping_add(1)
+            },
+            
+            Instruction::LDC(_) => todo!(),
+            Instruction::LDHLI(_) => todo!(),
+            Instruction::LDHLD(_) => todo!(),
+            Instruction::LDR(_) => todo!(),
+            Instruction::LDH(targetA) => {
+                match targetA{
+                    targetA::A => {
+                        self.registers.A=self.bus.read_byte(self.registers.A as u16);
+                    },
+                }
+                self.program_counter.wrapping_add(2)
+            },
+            Instruction::LDHS(targetA) => {
+                match targetA{
+                    instruction::targets::sourceA::A => {
+                        self.bus.write_byte(self.registers.A as u16, self.registers.A);
+                    },
+                }
+                self.program_counter.wrapping_add(2)
+            },
+            
+           
+
+            
+           
         }
     }
     
     
-    
-    // Substract instruction
-    fn subhl(&mut self, value: u16) -> u16
-    {
-        let (new_value, did_overflow) = self.registers.get_HL().overflowing_sub(value);
+   
 
-        // Set the flags
-        self.registers.F.zero = (new_value == 0);
-        self.registers.F.substract = true;
-        self.registers.F.carry = did_overflow;
 
-        // Half Carry is set if adding the lower nibbles of the value and
-        // register A together results in a value bigger than 0xF.
-        self.registers.F.half_carry = ((self.registers.A & 0x1FFF) < (value & 0x1FFF));
-
-        new_value
+    fn rlca(&mut self)  {
+        let bit7 = (self.registers.A & 0x01) != 0; // Capture le 7e bit du registre A (drapeau de retenue)
+        self.registers.A <<= 1; // Effectue la rotation vers la gauche de 1 bit
+    if self.registers.F.carry {
+        self.registers.A |= 0x0001; // Met la valeur du drapeau de retenue dans le bit 0 du registre A
     }
+    self.registers.F.carry = bit7; // Met à jour le drapeau de retenue avec l'ancienne valeur du 7e bit
+    }
+
+        fn rla(&mut self)  {
+            let bit7 = (self.registers.A & 0x01) != 0; // Capture le 7e bit du registre A (drapeau de retenue)
+            self.registers.A <<= 1; // Effectue la rotation vers la gauche de 1 bit
+        if self.registers.F.carry {
+            self.registers.A |= 0x0001; // Met la valeur du drapeau de retenue dans le bit 0 du registre A
+        }
+        self.registers.F.carry = bit7; // Met à jour le drapeau de retenue avec l'ancienne valeur du 7e bit
+        }
+
+fn rrca(&mut self)  {
+    let bit0 = self.registers.A & 0x01; // Capture le bit 0 du registre A
+    self.registers.A >>= 1; // Effectue la rotation vers la droite de 1 bit
+    self.registers.A |= if self.registers.F.carry { 0x80 } else { 0 }; // Copie la valeur du drapeau de retenue dans le bit 7 du registre A
+    self.registers.F.carry = bit0 != 0; // Met à jour le drapeau de retenue avec l'ancienne valeur du bit 0
+}
+
+    fn rra(&mut self){
+        let bit0 = self.registers.A & 0x01; // Capture le bit 0 du registre A
+        self.registers.A >>= 1; // Effectue la rotation vers la droite de 1 bit
+        if self.registers.F.carry {
+            self.registers.A |= 0x80; // Met la valeur du drapeau de retenue dans le bit 7 du registre A
+        }
+        self.registers.F.carry = bit0 != 0; 
+    }
+   
+   
     //ADC
     fn adc(&mut self,value:u8) -> u8
     {
@@ -1992,7 +1792,7 @@ impl CPU
         self.registers.F.carry = self.registers.F.carry || self.registers.A .wrapping_sub(1) < n_adjusted;
     }
 
-    result = result.wrapping_sub((if self.registers.F.carry{ 1 } else { 0 }));
+    result = result.wrapping_sub(if self.registers.F.carry{ 1 } else { 0 });
     self.registers.F.zero= result == 0;
 
     result
@@ -2005,13 +1805,13 @@ impl CPU
         let (new_value, did_overflow) = self.registers.A.overflowing_sub(value);
 
         // Set the flags
-        self.registers.F.zero = (new_value == 0);
+        self.registers.F.zero = new_value == 0;
         self.registers.F.substract = true;
         self.registers.F.carry = did_overflow;
 
         // Half Carry is set if adding the lower nibbles of the value and
         // register A together results in a value bigger than 0xF.
-        self.registers.F.half_carry = ((self.registers.A & 0x0F) < (value & 0x0F));
+        self.registers.F.half_carry = (self.registers.A & 0x0F) < (value & 0x0F);
 
         new_value
     }
@@ -2021,7 +1821,7 @@ impl CPU
         let new_value = self.registers.A & value;
 
         // Set the flags
-        self.registers.F.zero = (new_value == 0);
+        self.registers.F.zero = new_value == 0;
         self.registers.F.substract = false;
         self.registers.F.carry = false;
 
@@ -2036,7 +1836,7 @@ impl CPU
         let new_value = self.registers.A | value;
 
         // Set the flags
-        self.registers.F.zero = (new_value == 0);
+        self.registers.F.zero = new_value == 0;
         self.registers.F.substract = false;
         self.registers.F.carry = false;
 
@@ -2052,7 +1852,7 @@ impl CPU
         let new_value = self.registers.A ^ value;
 
         // Set the flags
-        self.registers.F.zero = (new_value == 0);
+        self.registers.F.zero = new_value == 0;
         self.registers.F.substract = false;
         self.registers.F.carry = false;
 
@@ -2065,25 +1865,22 @@ impl CPU
     // CP instr
     fn cp(&mut self, value: u8)
     {
-        let (new_value, did_overflow) = self.registers.A.overflowing_sub(value);
+        let _result = self.registers.A.wrapping_sub(value);
 
-        // Set the flags
-        self.registers.F.zero = (new_value == 0);
-        self.registers.F.substract = true;
-        self.registers.F.carry = did_overflow;
-
-        // Half Carry is set if adding the lower nibbles of the value and
-        // register A together results in a value bigger than 0xF.
-        self.registers.F.half_carry = ((self.registers.A & 0x0F) < (value & 0x0F));
-        
-        value
+    // Calculate flags based on the comparison.
+    
+    self.registers.F.zero= self.registers.A == value;
+    self.registers.F.substract= true;
+    self.registers.F.half_carry= (self.registers.A & 0x0F) < (value & 0x0F);
+    self.registers.F.carry= self.registers.A < value;
+    
 
     }
     
      fn inchl(&mut self, value: u16) -> u16
     {
         let (new_value, did_overflow) = value.overflowing_add(1);
-
+        
         // Set the flags
         //self.registers.F.zero = (new_value == 0);
         self.registers.F.substract = false;
@@ -2091,7 +1888,7 @@ impl CPU
 
         // Half Carry is set if adding the lower nibbles of the value and
         // register A together results in a value bigger than 0xF.
-        self.registers.F.half_carry = ((value & 0x0FFF + (value + 0x0FFF)) > 0x0FFF);
+        self.registers.F.half_carry = (value & 0x0FFF + (value + 0x0FFF)) > 0x0FFF;
 
         new_value
     }
@@ -2099,15 +1896,17 @@ impl CPU
     fn dec(&mut self, value: u8) -> u8
     {
         let (new_value, did_overflow) = value.overflowing_sub(1);
+       
 
         // Set the flags
-        self.registers.F.zero = (new_value == 0);
+        self.registers.F.zero = new_value == 0;
         self.registers.F.substract = true;
-        self.registers.F.carry = did_overflow;
+        self.registers.F.half_carry = new_value & 0x0F  == 0x0F;
+        
 
         // Half Carry is set if adding the lower nibbles of the value and
         // register A together results in a value bigger than 0xF.
-        self.registers.F.half_carry = ((value & 0x0F) < (value & 0x0F));
+        
 
         new_value
     }
@@ -2115,32 +1914,38 @@ impl CPU
     fn dechl(&mut self, value: u16) -> u16
     {
         let (new_value, did_overflow) = value.overflowing_sub(1);
+       
 
         // Set the flags
-        self.registers.F.zero = (new_value == 0);
+        self.registers.F.zero = new_value == 0;
         self.registers.F.substract = true;
-        self.registers.F.carry = did_overflow;
+        self.registers.F.half_carry = new_value & 0x0F  == 0x0F;
+        
 
         // Half Carry is set if adding the lower nibbles of the value and
         // register A together results in a value bigger than 0xF.
-        self.registers.F.half_carry = ((value & 0x1FFF) < (value & 0x1FFF));
+        
 
         new_value
     }
     // addsp instr
     fn addsp(&mut self)
     {
-        //self.registers.A =value;
-        let (new_value, did_overflow) = self.stack_pointer.wrapping_add(1);
 
-        // Set the flags
-        self.registers.F.zero = false;
-
-        self.registers.F.substract=false;
-        self.registers.F.half_carry=did_overflow || (new_value & 0x0F);
-        self.registers.F.carry= (new_value as u32 + n as u32) > 0xFFFF,
-
-        new_value
+        let result = self.stack_pointer.wrapping_add(1);
+    
+        // Determine if there's a carry from bit 11 (bit 15 is the sign bit)
+        let carry = (result & 0x07FF) & 0x0800 != 0;
+    
+        // Determine if there's a half-carry from bit 3
+        let half_carry = (result & 0x000F)  & 0x0010 != 0;
+    
+        
+        self.registers.F.zero = false; // Reset Z flag
+        self.registers.F.substract = false; // Reset N flag
+        self.registers.F.half_carry= half_carry; // Set or reset H flag according to operation
+        self.registers.F.carry = carry; // Set or reset C flag according to operation
+        
     }
 
     // Accumulate
@@ -2149,7 +1954,7 @@ impl CPU
         let (new_value, did_overflow) = self.registers.get_HL().overflowing_add(value);
 
         // Set the flags
-        self.registers.F.zero = (new_value == 0);
+        self.registers.F.zero = new_value == 0;
 
         self.registers.F.substract = false;
         self.registers.F.carry = did_overflow;
@@ -2157,27 +1962,24 @@ impl CPU
         // Half Carry is set if adding the lower nibbles of the value and
         // register A together results in a value bigger than 0xF.
 
-        self.registers.F.half_carry = ((self.registers.SP & 0xF) + (value + 0xF)) > 0xF;
+        self.registers.F.half_carry = ((self.stack_pointer & 0xF) + (value + 0xF)) > 0xF;
 
         new_value
 
     }
-    fn bit_zero(val: u8, bit: u8) -> bool {
-        (val & (1u8 << (bit as usize))) == 0
-    }
-    fn bit_zero2(val: u16, bit: u16) -> bool {
-        (val & (1u16 << (bit as usize))) == 0
-    }
+
     
-    fn bit_generic(&mut self, r: u8, bit: u8) {
-        self.registers.F.substract = false;
-        self.registers.F.zero = bit_zero(r, bit);
-        self.registers.F.half_carry = true;
-    }
-    fn bit_generic2(&mut self, r: u16, bit: u16) {
-        self.registers.F.substract = false;
-        self.registers.F.zero = bit_zero(r, bit);
-        self.registers.F.half_carry = true;
+    fn bit(&mut self, r: u8, bit: u8) {
+ 
+        let bit_mask = 1 << bit;
+    let result = (r & bit_mask) == 0;
+
+   
+    self.registers.F.zero= result;
+    self.registers.F.substract = false;
+    self.registers.F.half_carry = true;
+    
+   
     }
 
     fn ccf(&mut self){
@@ -2189,8 +1991,9 @@ impl CPU
         self.registers.A = !self.registers.A;
         self.registers.F.substract = true;
         self.registers.F.half_carry = true;
-        self.registers.A        
+        
     }
+        
     fn daa(&mut self){
         self.registers.A ;  
         let a = self.registers.A;
@@ -2220,9 +2023,9 @@ impl CPU
 
         self.registers.A = res;
 
-        self.registers.F.zero = (res == 0);
+        self.registers.F.zero = res == 0;
         self.registers.F.half_carry = false;
-        self.registers.F.carry = (adjust & 0x60 == 0x60);
+        self.registers.F.carry = adjust & 0x60 == 0x60;
      
     }
 
@@ -2235,7 +2038,10 @@ impl CPU
             // GB is Little Endian, ie:
             // PC+2 is MSB and PC+1 is LSB
             let least_significant_byte = self.bus.read_byte(self.program_counter + 1) as u16;
+
             let most_significant_byte = self.bus.read_byte(self.program_counter + 2) as u16;
+
+            (most_significant_byte << 8) | least_significant_byte
         }
         else
         {
@@ -2262,11 +2068,11 @@ impl CPU
 
     /// Jump to absolute address if `!Z`
     fn jp_nz_nn(&mut self) {
-        let addr = self.read_next_word();
 
-        if !self.registers.F.zero {
-            self.program_counter = addr ;
-        }
+        
+       self.bus.write_byte(self.registers.get_HL(), self.bus.read_byte(self.registers.get_HL()));
+
+    
     }
 
     /// Jump to absolute address if `Z`
@@ -2298,13 +2104,13 @@ impl CPU
 
     /// Unconditional jump to relative address
     fn jr_sn(&mut self) {
-        let off = self.read_next_byte() as i8;
+        let off = self.read_next_byte() ;
 
-        let mut pc = self.program_counter as i16;
+        let mut pc = self.program_counter ;
 
-        pc = pc.wrapping_add(off as i16);
+        pc = pc.wrapping_add(off as u16);
 
-        self.program_counter = pc as u16;
+        self.program_counter = pc ;
     }
 
     /// Jump to relative address if `!Z`
@@ -2322,29 +2128,26 @@ impl CPU
 
     /// Jump to relative address if `Z`
     fn jr_z_sn(&mut self) {
-        let off = self.read_next_byte() as i8;
+        let off = self.read_next_byte() as u8;
 
         if self.registers.F.zero {
-            let mut pc = self.program_counter as i16;
+            let mut pc = self.program_counter ;
 
-            pc = pc.wrapping_add(off as i16);
+            pc = pc.wrapping_add(off as u16);
 
             self.program_counter = pc as u16;
         }
     }
 
     /// Jump to relative address if `!C`
-    fn jr_nc_sn(&mut self) {
-        let off = self.read_next_byte() as i8;
-
-        if !self.registers.F.carry {
-            let mut pc = self.program_counter as i16;
-
-            pc = pc.wrapping_add(off as i16);
-
-            self.program_counter = pc as u16;
+    fn jr_nc_sn(&mut self, should_jump: bool)->u16 {
+     
+            
+                // Add the signed immediate value to the current address and jump to it
+                self.program_counter.wrapping_add(2)
+            
         }
-    }
+    
 
     /// Jump to relative address if `C`
     fn jr_c_sn(&mut self) {
@@ -2366,7 +2169,7 @@ impl CPU
         let (new_value, did_overflow) = self.registers.A.overflowing_add(value);
 
         // Set the flags
-        self.registers.F.zero = (new_value == 0);
+        self.registers.F.zero = new_value == 0;
         self.registers.F.substract = false;
         self.registers.F.carry = did_overflow;
 
@@ -2447,6 +2250,21 @@ impl CPU
         }
     }
 
+    // Return
+    fn return_i(&mut self, should_jump: bool) -> u16
+    {
+        if should_jump
+        {
+            self.is_interrupted=true;
+            self.pop()
+        }
+        else
+        {
+            self.program_counter.wrapping_add(1)
+        }
+        
+    }
+
     // Read and Write functions
     fn read_next_byte(&self) -> u8
     {
@@ -2489,25 +2307,25 @@ impl CPU
     fn stop(&mut self)
     {
         
-        self.bus.abort();
+        //self.bus.abort();
     }
 
     //RET
-    fn reti(&mut self)
+    fn reti(&mut self)-> u16
     {
-        self.pop();
-        let addr= self.pop();
-        self.jump(addr);
+        let return_address = self.pop();
         self.is_interrupted=true;
+        return_address
     }
 
 
     //RET
-    fn ret(&mut self)
+    fn ret(&mut self) ->u16
     {
-        self.pop();
-        let addr= self.pop();
-        self.jump(addr);
+        let return_address = self.pop();
+    return_address
+ 
+        
     }
 
     //RL
@@ -2601,7 +2419,7 @@ impl CPU
     {
         self.push(value);
         
-        self.jump(value)
+        self.program_counter.wrapping_add(1)
 
     }
 

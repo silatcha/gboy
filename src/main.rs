@@ -34,7 +34,7 @@ fn main()
    // let mut rom = Vec::new();
 
     
-    let cpu=CPU::new(rom, &rompath);
+    //let cpu=CPU::new(rom, &rompath);
 
    
     // - initialise emulator App

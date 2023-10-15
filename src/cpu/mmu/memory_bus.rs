@@ -32,33 +32,18 @@ impl MemoryBus
     {
         let address = address as usize;
 
-        match address
-        {
+     
+        
 
-            VRAM_BEGIN ..= VRAM_END =>
-            {
-                self.gpu.read_vram(address - VRAM_BEGIN)
-            }
-
-        }
-
-        //self.memory[address as usize]
+        self.memory[address as usize]
     }
 
-   pub fn write_byte(&self, address: u16, byte: u8)
+   pub fn write_byte(&mut self, address: u16, byte: u8)
     {
 
         let address = address as usize;
-        match address
-        {
-
-            VRAM_BEGIN ..= VRAM_END =>
-            {
-                self.gpu.write_vram(address, byte)
-            }
-
-        }
       
+        self.gpu.write_vram(address, byte)
 
     }
 }

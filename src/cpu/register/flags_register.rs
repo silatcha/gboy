@@ -50,11 +50,29 @@ impl FlagsRegister
             carry: false,
         }
     }
+
+    pub fn as_u16(&self) -> u16 {
+        let mut result = 0u16;
+        if self.zero {
+            result |= 1 << 7;
+        }
+        if self.substract {
+            result |= 1 << 6;
+        }
+        if self.half_carry {
+            result |= 1 << 5;
+        }
+        if self.carry {
+            result |= 1 << 4;
+        }
+        result
+    }
+
 }
 
-impl std::convert::From<FlagsRegister> for u8 
+impl std::convert::From<FlagsRegister> for u16 
 {
-    fn from(flag: FlagsRegister) -> u8
+    fn from(flag: FlagsRegister) -> u16
     {
         (if flag.zero       { 1 } else { 0 }) << ZERO_FLAG_BYTE_POS       |
         (if flag.substract  { 1 } else { 0 }) << SUB_FLAG_BYTE_POS        |

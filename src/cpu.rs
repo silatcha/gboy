@@ -1790,9 +1790,21 @@ impl CPU
                         LoadByteSource::DE => self.registers.get_HL(),
                         LoadByteSource::HL => self.registers.get_HL(),
                         LoadByteSource::D8 => self.read_next_byte(),
-                       // LoadByteSource:: => self.registers.C,
-                        LoadByteSource::HLD => self.bus.read_byte(self.registers.get_HL()),
-                        LoadByteSource::HLI => self.bus.read_byte(self.registers.get_HL())                       
+                        LoadByteSource::CC => 
+                        {
+                            self.bus.read_byte(self.registers.C + 0xff00)
+                        
+                        },
+                        LoadByteSource::HLD => 
+                        {
+                            self.bus.read_byte(self.registers.get_HL());
+                            self.dechl(self.registers.get_HL());
+                        },
+                        LoadByteSource::HLI => 
+                        {
+                            self.bus.read_byte(self.registers.get_HL());
+                            self.inchl(self.registers.get_HL());
+                        },                      
                     };
                     match target
                     {
@@ -1803,10 +1815,19 @@ impl CPU
                         LoadByteTarget::E => self.registers.E = source_value,
                         LoadByteTarget::H => self.registers.H = source_value,
                         LoadByteTarget::L => self.registers.L = source_value,
-                        LoadByteTarget::HLI => self.bus.write_byte(self.registers.get_HL(), source_value),
-                        _ =>
+                        LoadByteTarget::HLI => 
                         {
-                            // TODO: implement other targets
+                            self.bus.write_byte(self.registers.get_HL(), source_value);
+                            self.inchl(self.registers.get_HL());
+                        },
+                        LoadByteTarget::HLD =>
+                        {
+                            self.bus.write_byte(self.registers.get_HL(), source_value);
+                            self.dechl(self.registers.get_HL());
+                        },
+                        LoadByteTarget::CC =>
+                        {
+                            self.bus.write_byte(self.registers.C + 0xff00, source_value);
                         }
                     };
                     match source
@@ -2176,7 +2197,7 @@ impl CPU
     }
     fn bit_generic2(&mut self, r: u16, bit: u16) {
         self.registers.F.substract = false;
-        self.registers.F.zero = bit_zero(r, bit);
+        self.registers.F.zero = bit_zero2(r, bit);
         self.registers.F.half_carry = true;
     }
 
@@ -2185,13 +2206,15 @@ impl CPU
         self.registers.F.substract = false;
         self.registers.F.half_carry = false;        
     }
-    fn cpl(&mut self){
+    fn cpl(&mut self) -> u8
+    {
         self.registers.A = !self.registers.A;
         self.registers.F.substract = true;
         self.registers.F.half_carry = true;
         self.registers.A        
     }
-    fn daa(&mut self){
+    fn daa(&mut self) -> u8
+    {
         self.registers.A ;  
         let a = self.registers.A;
         let mut adjust = 0;

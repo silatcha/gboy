@@ -3,6 +3,8 @@ const VRAM_END: usize = 0x9FFF;
 const VRAM_SIZE: usize = VRAM_END - VRAM_BEGIN + 1;
 pub mod gpus;
 use self::gpus::gpu::GPU;
+use std::fs::File;
+use std::io::Read;
 
 pub struct MemoryBus 
 {
@@ -16,14 +18,51 @@ pub struct MemoryBus
 
 impl MemoryBus
 {
-    pub fn new(boot_rom: Option<[u8; 0xFFFF]>, game_rom: [u8; 0xFFFF]) -> MemoryBus
+    pub fn new(boot_rom_path: Option<&str>, game_rom_path: &str) -> MemoryBus
     {
-        MemoryBus
+        let mut memory_bus= MemoryBus
         {
-            memory: [0; 0xFFFF], // Initialize the memory array with zeros
-            boot_rom,
-            game_rom,
+            memory: [0; 0xFFFF],
+            boot_rom: None,
+            game_rom: [0; 0xFFFF],
             gpu: GPU::new(), // Initialize the GPU instance
+        };
+
+      
+        
+        // Load the boot ROM
+        if let Some(boot_rom_path) = boot_rom_path {
+            memory_bus.load_boot_rom(boot_rom_path);
+        }
+        
+        // Load the game ROM
+        memory_bus.load_game_rom(game_rom_path);
+
+        memory_bus
+    }
+
+    fn load_boot_rom(&mut self, file_path: &str) {
+        if let Ok(mut file) = File::open(file_path) {
+            if let Ok(bytes_read) = file.read(&mut self.memory) {
+                println!("Loaded {} bytes from boot ROM.", bytes_read);
+                self.boot_rom = Some(self.memory);
+            } else {
+                eprintln!("Failed to read boot ROM.");
+            }
+        } else {
+            eprintln!("Failed to open boot ROM file.");
+        }
+    }
+
+    fn load_game_rom(&mut self, file_path: &str) {
+        if let Ok(mut file) = File::open(file_path) {
+            if let Ok(bytes_read) = file.read(&mut self.game_rom) {
+                println!("Loaded {} bytes from game ROM.", bytes_read);
+            } else {
+                eprintln!("Failed to read game ROM.");
+            }
+        } else {
+            eprintln!("Failed to open game ROM file.");
         }
     }
 

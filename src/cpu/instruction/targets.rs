@@ -23,12 +23,12 @@ pub enum ADDHLTarget
 }
 
 
-pub enum targetA
+pub enum TargetA
 {
     A
 }
 
-pub enum sourceA
+pub enum SourceA
 {
   A  
 }

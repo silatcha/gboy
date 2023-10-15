@@ -7,14 +7,14 @@ use super::flags_register;
 // 8-bit registers
 pub struct Registers
 {
-    pub A: u8,
-    pub B: u8,
-    pub  C: u8,
-    pub  D: u8,
-    pub E: u8,
-    pub F: FlagsRegister,
-    pub H: u8,
-    pub  L: u8,
+    pub a: u8,
+    pub b: u8,
+    pub  c: u8,
+    pub  d: u8,
+    pub e: u8,
+    pub f: FlagsRegister,
+    pub h: u8,
+    pub  l: u8,
 }
 
 impl Registers 
@@ -23,65 +23,65 @@ impl Registers
     {
         Registers
         {
-            A: 0,
-            B: 0,
-            C: 0,
-            D: 0,
-            E: 0,
-            F: FlagsRegister::new(),
-            H: 0,
-            L: 0,
+            a: 0,
+            b: 0,
+            c: 0,
+            d: 0,
+            e: 0,
+            f: FlagsRegister::new(),
+            h: 0,
+            l: 0,
             
         }
     }
 
     // Read/Write functions for virtual 16-bits registers
     // BC:
-    pub  fn get_BC(&self) -> u16
+    pub  fn get_bc(&self) -> u16
     {
-        (self.B as u16) << 8 | (self.C as u16)
+        (self.b as u16) << 8 | (self.c as u16)
     }
 
-    pub fn set_BC(&mut self, value: u16)
+    pub fn set_bc(&mut self, value: u16)
     {
-        self.B = ((value & 0xFF00) >> 8) as u8;
-        self.C = (value & 0xFF) as u8;
+        self.b = ((value & 0xFF00) >> 8) as u8;
+        self.c = (value & 0xFF) as u8;
     }
 
     // AF:
-    pub fn get_AF(&self) -> u16
+    pub fn get_af(&self) -> u16
     {
         
-        (self.A as u16) << 8 | self.F.as_u16()
+        (self.a as u16) << 8 | self.f.as_u16()
     }
 
-    pub fn set_AF(&mut self, value: u16)
+    pub fn set_af(&mut self, value: u16)
     {
-        self.A = ((value & 0xFF00) >> 8) as u8;
-        self.F = FlagsRegister::from((value & 0xFF) as u8);
+        self.a = ((value & 0xFF00) >> 8) as u8;
+        self.f = FlagsRegister::from((value & 0xFF) as u8);
     }
 
     // DE:
-    pub fn get_DE(&self) -> u16
+    pub fn get_de(&self) -> u16
     {
-        (self.D as u16) << 8 | (self.E as u16)
+        (self.d as u16) << 8 | (self.e as u16)
     }
 
-    pub  fn set_DE(&mut self, value: u16)
+    pub  fn set_de(&mut self, value: u16)
     {
-        self.D = ((value & 0xFF00) >> 8) as u8;
-        self.E = (value & 0xFF) as u8;
+        self.d = ((value & 0xFF00) >> 8) as u8;
+        self.e = (value & 0xFF) as u8;
     }
 
     // HL:
-    pub fn get_HL(&self) -> u16
+    pub fn get_hl(&self) -> u16
     {
-        (self.H as u16) << 8 | (self.L as u16)
+        (self.h as u16) << 8 | (self.l as u16)
     }
 
-    pub  fn set_HL(&mut self, value: u16)
+    pub  fn set_hl(&mut self, value: u16)
     {
-        self.H = ((value & 0xFF00) >> 8) as u8;
-        self.L = (value & 0xFF) as u8;
+        self.h = ((value & 0xFF00) >> 8) as u8;
+        self.l = (value & 0xFF) as u8;
     }
 }

@@ -28,8 +28,8 @@ const VRAM_SIZE: usize = (VRAM_END - VRAM_BEGIN) + 1;
 enum TilePixelValue 
 {
     WHITE,
-    DARK_GREY,
-    LIGHT_GREY,
+    DarkGrey,
+    LightGrey,
     BLACK,
 }
 
@@ -95,8 +95,8 @@ impl GPU
             let value = match( lsb != 0, msb != 0)
             {
                 (true,false) => TilePixelValue::WHITE,
-                (true,true) => TilePixelValue::LIGHT_GREY,
-                (false,true) => TilePixelValue::DARK_GREY,
+                (true,true) => TilePixelValue::LightGrey,
+                (false,true) => TilePixelValue::DarkGrey,
                 (false,false) => TilePixelValue::BLACK,
             };
 

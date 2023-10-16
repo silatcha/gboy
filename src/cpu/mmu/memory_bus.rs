@@ -69,6 +69,7 @@ impl MemoryBus
     // Read and Write to and from Memory
    pub fn read_byte(&self, address: u16) -> u8
     {
+        println!("addresse {}", address as usize);
         let address = address as usize;
 
      

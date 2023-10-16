@@ -59,17 +59,28 @@ impl CPU
     {
         // Read the instruction byte from memory using Program Counter register
         let mut instruction_byte = self.bus.read_byte(self.program_counter);
-        println!("instruction {}", instruction_byte as u16);
-        println!("cb {}", 0xCB);
+       
+       
 
         // Check if the byte we read from memory is 0xCB, if it is, we read one
         // more byte and interpret the current as a "prefix instruction"
         let prefixed = instruction_byte == 0xCB;
+        let description = format!("0x{}{:x}", if prefixed { "cb" } else { "" }, instruction_byte);
+        println!("instruction {}", description);
 
         if prefixed
         {
             instruction_byte = self.bus.read_byte(self.program_counter + 1);
         }
+
+       /* if instruction_byte==0xe4 ||instruction_byte==0xe3 || 
+        instruction_byte==0xf4 || instruction_byte==0xeb ||
+         instruction_byte==0xd4 || instruction_byte==0xdb || 
+         instruction_byte==0xec || instruction_byte==0xed || 
+         instruction_byte==0xdd || instruction_byte==0xfd || instruction_byte==0xfc {
+            self.program_counter=self.program_counter+1;
+            
+        }*/
 
         // Translate the byte to one of the instancse of the Instruction enum
         let next_program_counter = if let Some(instruction) = Instruction::from_byte(instruction_byte,prefixed)
@@ -78,10 +89,12 @@ impl CPU
         }
         else
         {
-            let error_description = format!("0x{}{:x}", if prefixed { "cb" } else { "" }, instruction_byte);
-            panic!("Unknown instruction found for: {}", error_description);
+           // let error_description = format!("0x{}{:x}", if prefixed { "cb" } else { "" }, instruction_byte);
+           // panic!("Unknown instruction found for: {}", error_description);
+           self.program_counter=self.program_counter+1;
+           self.program_counter
         };
-
+        println!("next {}", next_program_counter);
         self.program_counter = next_program_counter;
 
         
@@ -880,7 +893,7 @@ impl CPU
 
                 };
                 
-                self.program_counter.wrapping_add(4)
+                self.program_counter.wrapping_add(1)
                 
             }   
             // SBC
@@ -1092,7 +1105,7 @@ impl CPU
 
                 };
                 
-                self.program_counter.wrapping_add(4)
+                self.program_counter.wrapping_add(1)
                 
             }
             // XOR
@@ -1161,7 +1174,7 @@ impl CPU
 
                 };
                 
-                self.program_counter.wrapping_add(4)
+                self.program_counter.wrapping_add(1)
                 
             }
             // CP 
@@ -1213,7 +1226,7 @@ impl CPU
 
                 };
                 
-                self.program_counter.wrapping_add(4)
+                self.program_counter.wrapping_add(1)
                 
             }
             // INCREMENT 
@@ -1648,7 +1661,7 @@ impl CPU
                 }
                 {
                 
-                    self.program_counter.wrapping_sub(1)
+                    self.program_counter.wrapping_add(1)
                 }
             },
 
@@ -1808,16 +1821,23 @@ fn rrca(&mut self)  {
     // Substract instruction
     fn sub(&mut self, value: u8) -> u8
     {
-        let (new_value, did_overflow) = self.registers.a.overflowing_sub(value);
+        let new_value = self.registers.a.wrapping_sub(value);
 
-        // Set the flags
-        self.registers.f.zero = new_value == 0;
-        self.registers.f.substract = true;
-        self.registers.f.carry = did_overflow;
+        
 
-        // Half Carry is set if adding the lower nibbles of the value and
-        // register A together results in a value bigger than 0xF.
-        self.registers.f.half_carry = (self.registers.a & 0x0F) < (value & 0x0F);
+        // Determine the Half-Carry (H) and Carry (C) flags
+    let half_carry = (self.registers.a & 0x0F) < (value & 0x0F);
+    let carry = u16::from(self.registers.a) < u16::from(value);
+
+   
+
+    // Update the flags
+    // Set the flags
+    self.registers.f.zero = new_value == 0;
+    self.registers.f.substract = true;
+    self.registers.f.half_carry = half_carry;
+    self.registers.f.carry = carry;
+
 
         new_value
     }
@@ -1885,23 +1905,15 @@ fn rrca(&mut self)  {
     
      fn inchl(&mut self, value: u16) -> u16
     {
-        let (new_value, did_overflow) = value.overflowing_add(1);
-        
-        // Set the flags
-        //self.registers.F.zero = (new_value == 0);
-        self.registers.f.substract = false;
-        self.registers.f.carry = did_overflow;
-
-        // Half Carry is set if adding the lower nibbles of the value and
-        // register A together results in a value bigger than 0xF.
-        self.registers.f.half_carry = (value & 0x0FFF + (value + 0x0FFF)) > 0x0FFF;
+        let new_value = value.wrapping_add(1);
+       
 
         new_value
     }
     // Decrement instruction
     fn dec(&mut self, value: u8) -> u8
     {
-        let (new_value, did_overflow) = value.overflowing_sub(1);
+        let new_value = value.wrapping_sub(1);
        
 
         // Set the flags
@@ -1919,7 +1931,7 @@ fn rrca(&mut self)  {
     // Decrement 2 bytes instruction
     fn dechl(&mut self, value: u16) -> u16
     {
-        let (new_value, did_overflow) = value.overflowing_sub(1);
+        let new_value = value.wrapping_sub(1);
        
 
         // Set the flags
@@ -1957,18 +1969,30 @@ fn rrca(&mut self)  {
     // Accumulate
     fn addhl(&mut self, value: u16) -> u16
     {
-        let (new_value, did_overflow) = self.registers.get_hl().overflowing_add(value);
+        let new_value = self.registers.get_hl().wrapping_add(value);
 
-        // Set the flags
-        self.registers.f.zero = new_value == 0;
-
-        self.registers.f.substract = false;
-        self.registers.f.carry = did_overflow;
+        
 
         // Half Carry is set if adding the lower nibbles of the value and
         // register A together results in a value bigger than 0xF.
 
-        self.registers.f.half_carry = ((self.stack_pointer & 0xF) + (value + 0xF)) > 0xF;
+      
+
+         // Update the Half-Carry (H) and Carry (C) flags
+    let half_carry = ((self.registers.get_hl() & 0x0FFF) + (value & 0x0FFF) > 0x0FFF) as u16;
+    let carry = (new_value < self.registers.get_hl()) as u16;
+
+    // Update HL with the result
+    
+
+    // Update the flags
+
+    self.registers.f.zero = false;
+
+    self.registers.f.substract = false;
+    self.registers.f.half_carry = half_carry != 0;
+    self.registers.f.carry = carry != 0;
+
 
         new_value
 
@@ -2172,18 +2196,26 @@ fn rrca(&mut self)  {
     // Accumulate
     fn add(&mut self, value: u8) -> u8
     {
-        let (new_value, did_overflow) = self.registers.a.overflowing_add(value);
+         // Calculate the sum of A, n, and the Carry flag
+    let carry_value = if self.registers.f.carry { 1 } else { 0 };
+    let result = self.registers.a.wrapping_add(value).wrapping_add(carry_value);
 
+    // Determine the Half-Carry (H) and Carry (C) flags
+    let half_carry = ((self.registers.a & 0x0F) + (value & 0x0F) + carry_value) > 0x0F;
+    let carry = u16::from(self.registers.a) + u16::from(value) + u16::from(carry_value) > 0xFF;
+
+ 
+       
+        //overflowing_add
         // Set the flags
-        self.registers.f.zero = new_value == 0;
+        self.registers.f.zero = result == 0;
         self.registers.f.substract = false;
-        self.registers.f.carry = did_overflow;
+        self.registers.f.half_carry = half_carry;
+        self.registers.f.carry = carry;
 
-        // Half Carry is set if adding the lower nibbles of the value and
-        // register A together results in a value bigger than 0xF.
-        self.registers.f.half_carry = ((self.registers.a & 0xF) + (value + 0xF)) > 0xF;
 
-        new_value
+
+        result
     }
 
    

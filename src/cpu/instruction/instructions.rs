@@ -354,7 +354,7 @@ impl Instruction
             0xFC => Some(Instruction::SET(PrefixTarget::H,BitPosition::B7)),
             0xFE => Some(Instruction::SET(PrefixTarget::HLI,BitPosition::B7)),
             0xFF => Some(Instruction::SET(PrefixTarget::A,BitPosition::B7)),
-           _  => todo!()
+           _  => None
             
         }
     }
@@ -575,7 +575,7 @@ impl Instruction
             0xD0 => Some(Instruction::RET(JumpTest::NC)),
             0xD1 => Some(Instruction::POP(StackTarget::DE)),
             0xD2 => Some(Instruction::JP(JumpTest::NC)),
-            //0xD3 => Some(Instruction::JP(JumpTest::E)),
+            0xD3 => None,
             0xD4 => Some(Instruction::CALL(JumpTest::NC)),
             0xD5 => Some(Instruction::PUSH(StackTarget::DE)),
             0xD6 => Some(Instruction::SUB(ArithmeticTarget::D8)),
@@ -583,16 +583,16 @@ impl Instruction
             0xD8 => Some(Instruction::RET(JumpTest::C)),
             0xD9 => Some(Instruction::RETI),
             0xDA => Some(Instruction::JP(JumpTest::C)),
-            //0xDB => Some(Instruction::JP(JumpTest::Z)),// pas d'idée
+            0xDB => None,
             0xDC => Some(Instruction::CALL(JumpTest::C)),
-            //0xDD => Some(Instruction::CALL(JumpTest)),// revoir
+            0xDD => None,
             0xDE => Some(Instruction::SBC(ArithmeticTarget::D8)),
             0xDF => Some(Instruction::RST(RSTPosition::X18)),
             0xE0 => Some(Instruction::LDHS(SourceA::A)),
             0xE1 => Some(Instruction::POP(StackTarget::HL)),
             0xE2 => Some(Instruction::LD(LoadType::Byte(LoadByteTarget::CC, LoadByteSource::A))),
-            //0xE3 => Some(Instruction::JP(JumpTest::E)),
-            //0xE4 => Some(Instruction::CALL(JumpTest::NC)),
+            0xE3 => None,
+            0xE4 => None,
             0xE5 => Some(Instruction::PUSH(StackTarget::HL)),
             0xE6 => Some(Instruction::AND(ArithmeticTarget::D8)),
             0xE7 => Some(Instruction::RST(RSTPosition::X20)),
@@ -601,9 +601,9 @@ impl Instruction
             0xE9 => Some(Instruction::JPHL),
 
             0xEA => Some(Instruction::LD(LoadType::AFromByteAddress)),// pas d'idée
-            //0xEB => Some(Instruction::JP(JumpTest::Z)),// pas d'idée
-            //0xEC => Some(Instruction::CALL(JumpTest::C)),
-            //0xED => Some(Instruction::CALL(JumpTest)),// revoir
+            0xEB => None,
+            0xEC => None,
+            0xED => None,
             0xEE => Some(Instruction::XOR(ArithmeticTarget::D8)),
             0xEF => Some(Instruction::RST(RSTPosition::X28)),
             0xF0 => Some(Instruction::LDH(TargetA::A)),
@@ -612,7 +612,7 @@ impl Instruction
 
             0xF3 => Some(Instruction::DI),
 
-            //0xF4 => Some(Instruction::CALL(JumpTest::NC)),
+            0xF4 => None,
             0xF5 => Some(Instruction::PUSH(StackTarget::AF)),
             0xF6 => Some(Instruction::OR(ArithmeticTarget::D8)),
             0xF7 => Some(Instruction::RST(RSTPosition::X30)),
@@ -622,13 +622,11 @@ impl Instruction
 
             0xFB => Some(Instruction::EI),
 
-            //0xFC => Some(Instruction::CALL(JumpTest::C)),
-            //0xFD => Some(Instruction::CALL(JumpTest)),// revoir
+            0xFC => None,
+            0xFD => None,
             0xFE => Some(Instruction::CP(ArithmeticTarget::D8)),
             0xFF => Some(Instruction::RST(RSTPosition::X38)),
-            
-            _ => panic!("y'a un problème"),
-            _ => todo!()
+            _ => None
            
             
         }

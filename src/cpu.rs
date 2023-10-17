@@ -169,7 +169,7 @@ impl CPU
                     },
                     ArithmeticTarget::D8 => {
 
-                        let new_value = self.add(self.read_next_byte());
+                        let new_value = self.read_next_byte();
                         self.registers.a = new_value;
                     },
 
@@ -763,6 +763,7 @@ impl CPU
                         let value = self.registers.c;
                         let new_value = self.adc(value);
                         self.registers.a = new_value;
+                        self.program_counter.wrapping_add(1)
                        
                     },
                     ArithmeticTarget::B =>
@@ -770,6 +771,7 @@ impl CPU
                         let value = self.registers.b;
                         let new_value = self.adc(value);
                         self.registers.a = new_value;
+                        self.program_counter.wrapping_add(1)
                        
                     },
                     ArithmeticTarget::A =>
@@ -777,6 +779,7 @@ impl CPU
                         let value = self.registers.a;
                         let new_value = self.adc(value);
                         self.registers.a = new_value;
+                        self.program_counter.wrapping_add(1)
                        
                     },
                     ArithmeticTarget::D =>
@@ -784,6 +787,7 @@ impl CPU
                         let value = self.registers.d;
                         let new_value = self.adc(value);
                         self.registers.a = new_value;
+                        self.program_counter.wrapping_add(1)
                         
                     },
                     ArithmeticTarget::E =>
@@ -791,6 +795,7 @@ impl CPU
                         let value = self.registers.e;
                         let new_value = self.adc(value);
                         self.registers.a = new_value;
+                        self.program_counter.wrapping_add(1)
                         
                     },
                     ArithmeticTarget::H =>
@@ -798,6 +803,7 @@ impl CPU
                         let value = self.registers.h;
                         let new_value = self.adc(value);
                         self.registers.a = new_value;
+                        self.program_counter.wrapping_add(1)
                         
                     },
                     ArithmeticTarget::L =>
@@ -805,6 +811,7 @@ impl CPU
                         let value = self.registers.l;
                         let new_value = self.adc(value);
                         self.registers.a = new_value;
+                        self.program_counter.wrapping_add(1)
                         
                     },
                     ArithmeticTarget::HL =>
@@ -812,17 +819,19 @@ impl CPU
                         let value = self.bus.read_byte(self.registers.get_hl());
                         let new_value = self.adc(value);
                         self.registers.a = new_value;
+                        self.program_counter.wrapping_add(1)
                         
                     }
                     ArithmeticTarget::D8 => {
                         
                         let new_value = self.adc(self.read_next_byte());
                         self.registers.a = new_value;
+                        self.program_counter.wrapping_add(2)
                     },
 
-                };
+                }
                 
-                self.program_counter.wrapping_add(4)
+             
                 
             }
             // SUB
@@ -1565,11 +1574,19 @@ impl CPU
                     LoadType::Word(target) => {
                         match target
                         {
-                            LoadWordTarget::BC => self.bus.write_byte(self.registers.c as u16,self.bus.read_byte(self.registers.get_bc())),  
-                            LoadWordTarget::DE => self.bus.write_byte(self.read_next_word(), self.bus.read_byte(self.registers.get_de())) ,
-                            LoadWordTarget::HL => self.bus.write_byte(self.read_next_word(), self.bus.read_byte(self.registers.get_hl())) ,
-                           LoadWordTarget::SP => self.bus.write_byte(self.read_next_word(), self.bus.read_byte(self.stack_pointer)) ,
+                            LoadWordTarget::BC =>{
+                                self.registers.set_bc(self.read_next_word()); 
+                            }
+                            LoadWordTarget::DE =>{
+                                self.registers.set_de(self.read_next_word());
+                            }
+                            LoadWordTarget::HL => {
+                                self.registers.set_hl(self.read_next_word());
+                            }
+                           LoadWordTarget::SP => {
+                            self.stack_pointer=self.read_next_word();
                         }
+                        };
                         self.program_counter.wrapping_add(3)
                     },
                     LoadType::AFromIndirect(_) => todo!(),
@@ -1582,9 +1599,18 @@ impl CPU
                         self.registers.a= self.bus.read_byte(self.registers.a as u16);
                         self.program_counter.wrapping_add(3)
                     },
-                    LoadType::SPFromHL => todo!(),
-                    LoadType::HLFromSPN => todo!(),
-                    LoadType::IndirectFromSP => todo!(),
+                    LoadType::SPFromHL => {
+                        self.stack_pointer=self.registers.get_hl();
+                        self.program_counter.wrapping_add(1)
+                    },
+                    LoadType::HLFromSPN => {
+                        self.registers.set_hl(self.stack_pointer);
+                        self.program_counter.wrapping_add(2)
+                    },
+                    LoadType::IndirectFromSP => {
+                        self.bus.write_byte(self.stack_pointer, self.bus.read_byte(self.read_next_word())) ;
+                        self.program_counter.wrapping_add(3)
+                    },
                 }
                
             }
@@ -1610,7 +1636,7 @@ impl CPU
             
                 };
 
-                self.program_counter.wrapping_add(2);
+               
                 self.return_(jump_condition)
                
             }

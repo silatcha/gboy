@@ -25,6 +25,8 @@ use self::mmu::memory_bus::MemoryBus;
 
 
 
+
+
 pub struct CPU
 {
     pub registers: Registers,
@@ -41,14 +43,15 @@ pub struct CPU
 impl CPU
 {
     // Constructor
-    pub fn new(boot_rom_path: Option<&str>, game_rom_path: &str) -> CPU
+    pub fn new(rom_data: Option<[u8; 0xFFFF]>) -> CPU
     {
+   
         CPU
         {
             registers: Registers::new(),
             program_counter: 0x0,
             stack_pointer: 0x0,
-            bus: MemoryBus::new(boot_rom_path, game_rom_path),
+            bus: MemoryBus::new(rom_data),
             is_halted: false,
             is_interrupted: true,
         }

@@ -1,10 +1,9 @@
 [package]
-name = "badboy-emu"
+name = "emulator"
 version = "0.1.0"
-authors = ["Lebrazi Mohammed Achraf <lebrazi.med.achraf@gmail.com>"]
-edition = "2018"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 sdl2 = "0.35.2"
-rand = "0.8.5"
- minifb = "0.25"

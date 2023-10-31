@@ -18,7 +18,7 @@ pub struct SamplesMutex<D: Audio> {
 unsafe impl<D: Audio> Send for SamplesMutex<D> {}
 
 impl<D: Audio> SamplesMutex<D> {
-    pub(super) fn new(inner: &Arc<Mutex<ApuInner<D>>>) -> Self {
+    pub fn new(inner: &Arc<Mutex<ApuInner<D>>>) -> Self {
         SamplesMutex { inner: Arc::clone(inner),
                        buf: Arc::new(Cell::new(None)) }
     }

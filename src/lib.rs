@@ -19,6 +19,7 @@ pub mod timer;
 pub mod vram;
 pub mod wram;
 pub mod sdlvideo;
+pub mod callback;
 
 
 

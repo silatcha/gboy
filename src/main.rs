@@ -2,21 +2,26 @@
 use emulator::{
     apu::device::{Audio, Stereo44100},
     cartridge,
+    apu::samples::SamplesMutex,
     cartridge::cartridge::{Cartridge, Mbc1, Mbc3, Mbc5},
     joypad::joypad::{Btn, Dir, Joypad, Key},
     ppu::ppu::{palette::*, Video},
     Builder, GameBoy,
     sdlvideo::SdlVideo,
+    callback,
+    callback::Callback
 };
 use sdl2::{
-    event::{Event, WindowEvent},
+    event::{Event, WindowEvent, EventWatchCallback},
     keyboard::Scancode,
     EventPump,
 };
 use std::{
     thread,
     time::{Duration, Instant},
+    sync::{Arc, Mutex, MutexGuard},
 };
+use std::marker::PhantomData;
 
 const SCALE: u32 = 4;
 
@@ -33,12 +38,19 @@ fn main() {
                     .into_canvas()
                     .build()
                     .expect("Error creating SDL canvas");
-
+    
+    let audio_subsystem = sdl.audio().unwrap();
+    
+    let stereo_config: Stereo44100<f32> = Stereo44100(PhantomData);
     let mut emulator = Builder::default().video(SdlVideo::new(canvas))
                                          .cartridge(cartridge::from_bytes(ROM).unwrap())
                                          .gb_mode()
                                          .build();
-
+                                        
+     
+    //let audio = <dyn Audio>::Sample;
+    let samples_mutex = SamplesMutex::new(&Arc::new(Mutex::new(emulator.mmu_mut().apu().apuinner)));                                      
+    let audio_device =callback::create_device(&audio_subsystem, samples_mutex);
     // set-up custom 4 color palette
     emulator.mmu_mut().ppu_mut().pal_mut().set_color_pal(DMG);
 
@@ -75,6 +87,7 @@ fn handle_input(pump: &mut EventPump,
                 dmg: &mut GameBoy<impl Cartridge, impl Video, impl Audio>)
                 -> bool {
     let joypad = dmg.mmu_mut().joypad_mut();
+  
     for event in pump.poll_iter() {
         match event {
             Event::Window { win_event: WindowEvent::Close,
@@ -93,7 +106,10 @@ fn handle_input(pump: &mut EventPump,
             }
             _ => {}
         }
+   
     }
+    
+     
     false
 }
 

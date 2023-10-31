@@ -97,10 +97,12 @@ impl<D: Audio> ApuInner<D> {
 }
 
 pub struct Apu<D: Audio> {
-    inner: Arc<Mutex<ApuInner<D>>>,
+   pub inner: Arc<Mutex<ApuInner<D>>>,
+   pub apuinner: ApuInner<D>,
 }
 
 impl<D: Audio> Default for Apu<D> {
+  
     fn default() -> Self {
         let inner = ApuInner { _phantom: PhantomData,
                                sample: 0,
@@ -136,7 +138,43 @@ impl<D: Audio> Default for Apu<D> {
                                nr50: 0,
                                nr51: 0,
                                nr52: 0 };
-        Self { inner: Arc::new(Mutex::new(inner)) }
+
+                               let inner1 = ApuInner { _phantom: PhantomData,
+                                sample: 44100,
+ 
+                                ch0: None,
+                                ch1: None,
+                                ch2: None,
+                                ch3: None,
+ 
+                                nr10: 0,
+                                nr11: 0,
+                                nr12: 0,
+                                nr13: 0,
+                                nr14: 0,
+ 
+                                nr21: 0,
+                                nr22: 0,
+                                nr23: 0,
+                                nr24: 0,
+ 
+                                nr30: 0,
+                                nr31: 0,
+                                nr32: 0,
+                                nr33: 0,
+                                nr34: 0,
+                                wave_ram: [0; 0x10],
+ 
+                                nr41: 0,
+                                nr42: 0,
+                                nr43: 0,
+                                nr44: 0,
+ 
+                                nr50: 0,
+                                nr51: 0,
+                                nr52: 0 };
+        Self { inner: Arc::new(Mutex::new(inner)),
+            apuinner: inner1 }
     }
 }
 
@@ -146,7 +184,9 @@ impl<D: Audio> Apu<D> {
         SamplesMutex::new(&self.inner)
     }
 
+
     pub fn lock(&self) -> MutexGuard<ApuInner<D>> {
+     
         match self.inner.lock() {
             Ok(guard) => guard,
             Err(poisoned) => poisoned.into_inner(),

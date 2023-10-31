@@ -55,7 +55,7 @@ pub trait Audio {
 }
 
 /// 44100Hz, stereo.
-pub struct Stereo44100<T>(PhantomData<T>);
+pub struct Stereo44100<T>(pub PhantomData<T>);
 
 /// 44100Hz, mono.
 pub struct Mono44100<T>(PhantomData<T>);

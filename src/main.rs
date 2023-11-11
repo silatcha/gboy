@@ -2,13 +2,11 @@
 use emulator::{
     apu::device::Audio,
     cartridge,
-    apu::samples::SamplesMutex,
     cartridge::cartridge::Cartridge,
     joypad::joypad::{Btn, Dir, Key},
     ppu::ppu::{palette::*, Video},
     Builder, GameBoy,
     sdlvideo::SdlVideo,
-    callback,
 };
 use sdl2::{
     event::{Event, WindowEvent},
@@ -146,8 +144,6 @@ fn handle_input(pump: &mut EventPump,
         match event {
             Event::Window { win_event: WindowEvent::Close,
                             .. } => return true,
-            Event::KeyDown { scancode: Some(Scancode::Escape),
-                             .. } => break,
             Event::KeyDown { scancode: Some(s), .. } => {
                 if let Some(key) = map_scancode(s) {
                     joypad.press(key)
@@ -180,5 +176,3 @@ fn map_scancode(scancode: Scancode) -> Option<Key> {
         _ => None,
     }
 }
-
-

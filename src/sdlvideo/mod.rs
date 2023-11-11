@@ -5,10 +5,7 @@ use sdl2::{
     pixels::PixelFormatEnum,
     render::{TextureAccess, WindowCanvas},
 };
-use std::{
-    ops::{Deref, DerefMut},
-    slice,
-};
+use std::slice;
 
 const PIXELS: usize = 160 * 144;
 

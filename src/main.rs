@@ -17,21 +17,18 @@ use std::{
     thread,
     io,
     time::{Duration, Instant},
-    sync::{Arc, Mutex},
 };
 
 use std::env;
-use std::cmp::Ordering;
 
 
 const SCALE: u32 = 4;
 
-static ROM: &[u8] = include_bytes!("../data/Legend_of_Zelda.gbc");
 
 fn main() {
 
 
-    let mut ROMS: &[u8] = include_bytes!("../data/Aladdin.gb");;
+    let mut roms: &[u8] = include_bytes!("../data/Aladdin.gb");
 
     
               loop {
@@ -42,30 +39,29 @@ fn main() {
                           3) Fun_Pak
                           4) Super Mario");
         
-                let mut numeroJeu = String::new();
+                let mut numero_jeu = String::new();
         
                 io::stdin()
-                    .read_line(&mut numeroJeu)
+                    .read_line(&mut numero_jeu)
                     .expect("Échec de la lecture de l'entrée utilisateur");
         
-                let numeroJeu: u32 = match numeroJeu.trim().parse() {
+                let numero_jeu: u32 = match numero_jeu.trim().parse() {
                     Ok(nombre) => nombre,
                     Err(_) => continue,
                 };
         
-                println!("Votre nombre : {}", numeroJeu);
         
-                if numeroJeu == 1 {
-                    ROMS = include_bytes!("../data/Aladdin.gb");
+                if numero_jeu == 1 {
+                    roms = include_bytes!("../data/Aladdin.gb");
                     break;
-                }else if  numeroJeu == 2 {
-                    ROMS = include_bytes!("../data/Choplifter.gb");
+                }else if  numero_jeu == 2 {
+                    roms = include_bytes!("../data/Choplifter.gb");
                     break;
-                }else if  numeroJeu == 3 {
-                    ROMS = include_bytes!("../data/Fun_Pak.gb");
+                }else if  numero_jeu == 3 {
+                    roms = include_bytes!("../data/Fun_Pak.gb");
                     break;
-                } else if  numeroJeu == 4 {
-                    ROMS = include_bytes!("../data/Super_Mario_Land.gb");
+                } else if  numero_jeu == 4 {
+                    roms = include_bytes!("../data/Super_Mario_Land.gb");
                     break;
                 }
             }
@@ -85,11 +81,11 @@ fn main() {
                     .build()
                     .expect("Error creating SDL canvas");
     
-    let audio_subsystem = sdl.audio().unwrap();
+   // let audio_subsystem = sdl.audio().unwrap();
     
     //let stereo_config: Stereo44100<f32> = Stereo44100(PhantomData);
     let mut emulator = Builder::default().video(SdlVideo::new(canvas))
-                                         .cartridge(cartridge::from_bytes(ROMS).unwrap())
+                                         .cartridge(cartridge::from_bytes(roms).unwrap())
                                          .gb_mode()
                                          .skip_boot()
                                          .build();

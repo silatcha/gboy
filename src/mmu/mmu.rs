@@ -8,7 +8,7 @@ use crate::{
     ppu::ppu::{Ppu, Video, HBLANK, PIXELS, SEARCH, VBLANK},
     timer::timer::Timer,
     wram::wram::WRam,
-    Mode, CLOCK,
+    Mode,
 };
 
 

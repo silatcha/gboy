@@ -31,9 +31,7 @@ impl Default for Oam {
 }
 
 impl Oam {
-    pub(crate) fn search(&mut self, ly: u8, height: u8) {
-        // TODO
-    }
+
 
     pub(crate) fn visible(&self) -> impl Iterator<Item = &Entry> {
         self.entries.iter()
@@ -49,16 +47,14 @@ impl Oam {
         self.entries.iter_mut()
     }
 
-    /// Access an entry from the OAM table.
-    ///
+
     /// # Panic
     /// Panics if `idx >= 40`
     pub fn get(&self, idx: usize) -> &Entry {
         &self.entries[idx]
     }
 
-    /// Access an entry from the OAM table as mutable.
-    ///
+
     /// # Panic
     /// Panics if `idx >= 40`
     pub fn get_mut(&mut self, idx: usize) -> &mut Entry {

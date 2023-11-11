@@ -37,7 +37,7 @@ pub fn create_device<D>(audio: &AudioSubsystem,
    
     let freq = SAMPLE_RATE as i32;
     let channels = if D::mono() { 1 } else { 2 };
-    let buffer = freq / 60;
+    let _buffer = freq / 60;
     let spec = AudioSpecDesired { freq: Some(freq),
                                   channels: Some(channels),
                                   samples: Some(0x200 as u16) };

@@ -197,8 +197,8 @@ impl<V: Video> Ppu<V> {
                 line += 1;
 
                 // search 10 visible sprites in new line
-                let h = self.lcdc_stat.lcdc_ob_size();
-                self.oam.search(line, h);
+                //let h = self.lcdc_stat.lcdc_ob_size();
+                //self.oam.search(line, h);
             }
 
             (StatMode::VBlank, StatMode::Search) => {

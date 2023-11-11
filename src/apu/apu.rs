@@ -53,7 +53,7 @@ pub struct ApuInner<D: Audio> {
 
 
 impl<D: Audio> ApuInner<D> {
-    pub fn step(&mut self, cycles: u64) {}
+    pub fn step(&mut self, _cycles: u64) {}
 
   
     fn power_off(&mut self) {

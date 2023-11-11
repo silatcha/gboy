@@ -1,33 +1,81 @@
 
 use emulator::{
-    apu::device::{Audio, Stereo44100},
+    apu::device::Audio,
     cartridge,
     apu::samples::SamplesMutex,
-    cartridge::cartridge::{Cartridge, Mbc1, Mbc3, Mbc5},
-    joypad::joypad::{Btn, Dir, Joypad, Key},
+    cartridge::cartridge::Cartridge,
+    joypad::joypad::{Btn, Dir, Key},
     ppu::ppu::{palette::*, Video},
     Builder, GameBoy,
     sdlvideo::SdlVideo,
     callback,
-    callback::Callback
 };
 use sdl2::{
-    event::{Event, WindowEvent, EventWatchCallback},
+    event::{Event, WindowEvent},
     keyboard::Scancode,
     EventPump,
 };
 use std::{
     thread,
+    io,
     time::{Duration, Instant},
-    sync::{Arc, Mutex, MutexGuard},
+    sync::{Arc, Mutex},
 };
-use std::marker::PhantomData;
+
+use std::env;
+use std::cmp::Ordering;
+
 
 const SCALE: u32 = 4;
 
-static ROM: &[u8] = include_bytes!("../data/Super_Mario_Land.gb");
+static ROM: &[u8] = include_bytes!("../data/Legend_of_Zelda.gbc");
 
 fn main() {
+
+
+    let mut ROMS: &[u8] = include_bytes!("../data/Aladdin.gb");;
+
+    
+              loop {
+                println!("Veuillez selectionner le jeu ( écrivez un numero ) :");
+                println!("\n
+                          1) aladdin 
+                          2) Choplifter
+                          3) Fun_Pak
+                          4) Super Mario");
+        
+                let mut numeroJeu = String::new();
+        
+                io::stdin()
+                    .read_line(&mut numeroJeu)
+                    .expect("Échec de la lecture de l'entrée utilisateur");
+        
+                let numeroJeu: u32 = match numeroJeu.trim().parse() {
+                    Ok(nombre) => nombre,
+                    Err(_) => continue,
+                };
+        
+                println!("Votre nombre : {}", numeroJeu);
+        
+                if numeroJeu == 1 {
+                    ROMS = include_bytes!("../data/Aladdin.gb");
+                    break;
+                }else if  numeroJeu == 2 {
+                    ROMS = include_bytes!("../data/Choplifter.gb");
+                    break;
+                }else if  numeroJeu == 3 {
+                    ROMS = include_bytes!("../data/Fun_Pak.gb");
+                    break;
+                } else if  numeroJeu == 4 {
+                    ROMS = include_bytes!("../data/Super_Mario_Land.gb");
+                    break;
+                }
+            }
+   
+
+   
+
+    env::set_var("RUST_BACKTRACE", "1");
     let sdl = sdl2::init().unwrap();
     let canvas = sdl.video()
                     .unwrap()
@@ -41,22 +89,28 @@ fn main() {
     
     let audio_subsystem = sdl.audio().unwrap();
     
-    let stereo_config: Stereo44100<f32> = Stereo44100(PhantomData);
+    //let stereo_config: Stereo44100<f32> = Stereo44100(PhantomData);
     let mut emulator = Builder::default().video(SdlVideo::new(canvas))
-                                         .cartridge(cartridge::from_bytes(ROM).unwrap())
+                                         .cartridge(cartridge::from_bytes(ROMS).unwrap())
                                          .gb_mode()
+                                         .skip_boot()
                                          .build();
                                         
      
     //let audio = <dyn Audio>::Sample;
-    let samples_mutex = SamplesMutex::new(&Arc::new(Mutex::new(emulator.mmu_mut().apu().apuinner)));                                      
-    let audio_device =callback::create_device(&audio_subsystem, samples_mutex);
+   /* let samples_mutex = SamplesMutex::new(&Arc::new(Mutex::new(emulator.mmu_mut().apu().getinner())));                                      
+    let audio_device =callback::create_device(&audio_subsystem, samples_mutex).unwrap();
+    audio_device.resume();*/
+   // std::thread::sleep(std::time::Duration::new(5, 0));
     // set-up custom 4 color palette
     emulator.mmu_mut().ppu_mut().pal_mut().set_color_pal(DMG);
 
     let mut pump = sdl.event_pump().unwrap();
 
     let mut carry = Duration::new(0, 0);
+
+
+
 
     loop {
         let time = Instant::now();
@@ -92,8 +146,8 @@ fn handle_input(pump: &mut EventPump,
         match event {
             Event::Window { win_event: WindowEvent::Close,
                             .. } => return true,
-            Event::KeyDown { scancode: Some(Scancode::S),
-                             .. } => unimplemented!("screenshot"),
+            Event::KeyDown { scancode: Some(Scancode::Escape),
+                             .. } => break,
             Event::KeyDown { scancode: Some(s), .. } => {
                 if let Some(key) = map_scancode(s) {
                     joypad.press(key)
@@ -115,14 +169,16 @@ fn handle_input(pump: &mut EventPump,
 
 fn map_scancode(scancode: Scancode) -> Option<Key> {
     match scancode {
-        Scancode::Z => Some(Key::Btn(Btn::A)),
-        Scancode::X => Some(Key::Btn(Btn::B)),
+        Scancode::J => Some(Key::Btn(Btn::A)),
+        Scancode::K => Some(Key::Btn(Btn::B)),
         Scancode::RShift => Some(Key::Btn(Btn::Select)),
         Scancode::Return => Some(Key::Btn(Btn::Start)),
-        Scancode::Left => Some(Key::Dir(Dir::Left)),
-        Scancode::Right => Some(Key::Dir(Dir::Right)),
-        Scancode::Up => Some(Key::Dir(Dir::Up)),
-        Scancode::Down => Some(Key::Dir(Dir::Down)),
+        Scancode::A => Some(Key::Dir(Dir::Left)),
+        Scancode::D => Some(Key::Dir(Dir::Right)),
+        Scancode::W => Some(Key::Dir(Dir::Up)),
+        Scancode::S => Some(Key::Dir(Dir::Down)),
         _ => None,
     }
 }
+
+

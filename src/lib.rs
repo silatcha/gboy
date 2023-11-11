@@ -23,6 +23,7 @@ pub mod callback;
 
 
 
+
 const CLOCK: u64 = 4_194_304;
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
@@ -127,28 +128,30 @@ impl<C: Cartridge, V: Video, D: Audio> Builder<C, V, D> {
     }
 
     /// Set up for Color Game Boy emulation.
-    pub fn gbc_mode(mut self) -> Self {
+    pub fn gbc_mode(self) -> Self {
         self.with_mode(Mode::CGB)
     }
 
     /// Set up for Non-color Game Boy emulation.
-    pub fn gb_mode(mut self) -> Self {
+    pub fn gb_mode(self) -> Self {
         self.with_mode(Mode::GB)
     }
 
     pub fn build(self) -> GameBoy<C, V, D> {
         let cartridge = self.cartridge;
+      
         let mode = self.mode.unwrap_or(Mode::CGB);
+        
         let video = self.video;
         let mut dmg = GameBoy { cpu: Cpu::default(),
                                 mmu: Mmu::new(mode, cartridge, video),
                                 carry: 0 };
-
-        // FIXME Bugs:
-        //  - GB game on CGB mode (color palette is not set).
+                              
+       
         if self.skip_boot {
+        
             let cpu = dmg.cpu_mut();
-
+           
             // Initialize CPU
             cpu.reg_mut().set_af(0x01b0);
             cpu.reg_mut().set_bc(0x0013);
@@ -160,9 +163,10 @@ impl<C: Cartridge, V: Video, D: Audio> Builder<C, V, D> {
             // Games that work on both GB and CGB check the A register to detect CGB
             // hardware and enhance games (mostly add color and better tiles).
             if let Mode::CGB = mode {
+               
                 cpu.reg_mut().a = 0x11;
             }
-
+           
             let mmu = dmg.mmu_mut();
 
             // Initialize memory map

@@ -1,7 +1,4 @@
-//! Cartridge types.
-//!
-//! Only the most common cartridge types are implemented. Less common cartridges
-//! (such as the camera) are implemented in external crates.
+
 use crate::device::device::Device;
 
 mod mbc1;
@@ -14,7 +11,7 @@ pub use mbc3::Mbc3;
 pub use mbc5::Mbc5;
 pub use rom::Rom;
 
-/// Bank controller trait.
+
 pub trait Cartridge: Device {}
 
 impl Cartridge for () {}

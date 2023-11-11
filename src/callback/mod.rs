@@ -14,32 +14,33 @@ impl<D> AudioCallback for Callback<D>
     where D: Audio + 'static,
           D::Sample: AudioFormatNum
 {
+    
     type Channel = D::Sample;
 
     fn callback(&mut self, samples: &mut [Self::Channel]) {
+       
         let lock = self.0.lock();
         for (i, sample) in lock.take(samples.len()).enumerate() {
+            //println!("{}", sample);
             samples[i] = sample;
         }
     }
 }
 
-/// Wraps APU in an SDL audio device.
-///
-/// # Panic
-/// Panics if the device can't support the emulated sound.
+
 pub fn create_device<D>(audio: &AudioSubsystem,
                         samples: SamplesMutex<D>)
                         -> Result<SdlAudioDevice<Callback<D>>, String>
     where D: Audio + 'static,
           D::Sample: AudioFormatNum
 {
-    let freq = D::sample_rate() as _;
+   
+    let freq = SAMPLE_RATE as i32;
     let channels = if D::mono() { 1 } else { 2 };
     let buffer = freq / 60;
     let spec = AudioSpecDesired { freq: Some(freq),
                                   channels: Some(channels),
-                                  samples: Some(buffer as _) };
+                                  samples: Some(0x200 as u16) };
 
     audio.open_playback(None, &spec, |spec| {
              assert_eq!(freq, spec.freq,);
@@ -47,3 +48,6 @@ pub fn create_device<D>(audio: &AudioSubsystem,
              Callback(samples)
          })
 }
+const SAMPLER_DIVIDER: u32 = 95;
+const SYSCLK_FREQ:      i64 = 0x400000;
+pub const SAMPLE_RATE: u32 = SYSCLK_FREQ as u32 / SAMPLER_DIVIDER;

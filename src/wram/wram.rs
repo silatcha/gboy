@@ -41,10 +41,6 @@ impl Default for WRam {
     }
 }
 
-// In CGB Mode 32 KBytes internal RAM are available. This memory is divided into
-// 8 banks of 4 KBytes each. Bank 0 is always available in memory at C000-CFFF,
-// Bank 1-7 can be selected into the address space at D000-DFFF.
-// Bit 0-2  Select WRAM Bank (Read/Write)
 
 impl Device for WRam {
     fn read(&self, addr: u16) -> u8 {

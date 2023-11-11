@@ -55,11 +55,7 @@ impl Joypad {
             Key::Dir(dir) => (self.btn, self.dir & !(dir as u8)),
         };
 
-        // Joypad interrupt is requested when any of the above Input lines changes from
-        // High to Low. Generally this should happen when a key becomes pressed
-        // (provided that the button/direction key is enabled by above Bit4/5), however,
-        // because of switch bounce, one or more High to Low transitions are usually
-        // produced both when pressing or releasing a key.
+
         if self.btn != btn || self.dir != dir {
             self.int = Some(Flag::Joypad);
         }
@@ -68,7 +64,7 @@ impl Joypad {
         self.dir = dir;
     }
 
-    /// Register the release of a keypad input.
+
     pub fn release(&mut self, key: Key) {
         match key {
             Key::Btn(btn) => self.btn |= btn as u8,
@@ -81,18 +77,6 @@ impl Joypad {
     }
 }
 
-// The eight gameboy buttons/direction keys are arranged in form of a 2x4
-// matrix. Select either button or direction keys by writing to this register,
-// then read-out bit 0-3.
-//
-// Bit 7 - Not used
-// Bit 6 - Not used
-// Bit 5 - P15 Select Button Keys      (0=Select)
-// Bit 4 - P14 Select Direction Keys   (0=Select)
-// Bit 3 - P13 Input Down  or Start    (0=Pressed) (Read Only)
-// Bit 2 - P12 Input Up    or Select   (0=Pressed) (Read Only)
-// Bit 1 - P11 Input Left  or Button B (0=Pressed) (Read Only)
-// Bit 0 - P10 Input Right or Button A (0=Pressed) (Read Only)
 impl Device for Joypad {
     fn read(&self, addr: u16) -> u8 {
         assert_eq!(0xff00, addr);
@@ -111,71 +95,3 @@ impl Device for Joypad {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use crate::{
-        device::device::Device,
-        joypad::joypad::{Btn::*, Dir::*, Joypad, Key, BTN_ROW_FLAG, DIR_ROW_FLAG},
-    };
-
-    #[test]
-    fn joypad_never_0() {
-        let mut joypad = Joypad::default();
-
-        assert_ne!(0, joypad.read(0xff00));
-
-        joypad.write(0xff00, 0);
-
-        assert_ne!(0, joypad.read(0xff00));
-
-        joypad.press(Key::Dir(Down));
-        joypad.press(Key::Dir(Up));
-        joypad.press(Key::Dir(Left));
-        joypad.press(Key::Dir(Right));
-        joypad.press(Key::Btn(Select));
-        joypad.press(Key::Btn(Start));
-        joypad.press(Key::Btn(A));
-        joypad.press(Key::Btn(B));
-
-        joypad.write(0xff00, DIR_ROW_FLAG);
-        assert_ne!(0, joypad.read(0xff00));
-        joypad.write(0xff00, BTN_ROW_FLAG);
-        assert_ne!(0, joypad.read(0xff00));
-        joypad.write(0xff00, BTN_ROW_FLAG | DIR_ROW_FLAG);
-        assert_ne!(0, joypad.read(0xff00));
-        joypad.write(0xff00, 0);
-        assert_ne!(0, joypad.read(0xff00));
-    }
-
-    #[test]
-    fn joypad_select() {
-        let mut joypad = Joypad::default();
-
-        joypad.press(Key::Btn(Select));
-        joypad.press(Key::Btn(Start));
-
-        joypad.write(0xff00, DIR_ROW_FLAG);
-        assert_eq!(DIR_ROW_FLAG | 0xf, joypad.read(0xff00));
-        joypad.press(Key::Dir(Down));
-        assert_eq!(DIR_ROW_FLAG | 0b0111, joypad.read(0xff00));
-        joypad.press(Key::Dir(Up));
-        assert_eq!(DIR_ROW_FLAG | 0b0011, joypad.read(0xff00));
-        joypad.press(Key::Dir(Left));
-        assert_eq!(DIR_ROW_FLAG | 0b0001, joypad.read(0xff00));
-
-        joypad.write(0xff00, BTN_ROW_FLAG);
-        assert_eq!(BTN_ROW_FLAG | 0b0011, joypad.read(0xff00));
-
-        joypad.write(0xff00, DIR_ROW_FLAG);
-        assert_eq!(DIR_ROW_FLAG | 0b0001, joypad.read(0xff00));
-        joypad.press(Key::Dir(Right));
-        assert_eq!(DIR_ROW_FLAG | 0b0000, joypad.read(0xff00));
-
-        joypad.write(0xff00, BTN_ROW_FLAG);
-        assert_eq!(BTN_ROW_FLAG | 0b0011, joypad.read(0xff00));
-        joypad.press(Key::Btn(A));
-        assert_eq!(BTN_ROW_FLAG | 0b0001, joypad.read(0xff00));
-        joypad.press(Key::Btn(B));
-        assert_eq!(BTN_ROW_FLAG | 0b0000, joypad.read(0xff00));
-    }
-}

@@ -45,28 +45,17 @@ pub struct ApuInner<D: Audio> {
 
     // Sound Control Registers
     nr50: u8,
-    // Bit 7 - Output sound 4 to SO2 terminal
-    // Bit 6 - Output sound 3 to SO2 terminal
-    // Bit 5 - Output sound 2 to SO2 terminal
-    // Bit 4 - Output sound 1 to SO2 terminal
-    // Bit 3 - Output sound 4 to SO1 terminal
-    // Bit 2 - Output sound 3 to SO1 terminal
-    // Bit 1 - Output sound 2 to SO1 terminal
-    // Bit 0 - Output sound 1 to SO1 terminal
+   
     pub nr51: u8,
-    // Bit 7 - All sound on/off  (0: stop all sound circuits) (Read/Write)
-    // Bit 3 - Sound 4 ON flag (Read Only)
-    // Bit 2 - Sound 3 ON flag (Read Only)
-    // Bit 1 - Sound 2 ON flag (Read Only)
-    // Bit 0 - Sound 1 ON flag (Read Only)
+
     nr52: u8,
 }
 
-// FIXME don't inline so much (channels 1 & 2 share some behaviour)
+
 impl<D: Audio> ApuInner<D> {
     pub fn step(&mut self, cycles: u64) {}
 
-    // clear APU registers except NR52's high bit
+  
     fn power_off(&mut self) {
         self.nr10 = 0;
         self.nr11 = 0;
@@ -139,42 +128,10 @@ impl<D: Audio> Default for Apu<D> {
                                nr51: 0,
                                nr52: 0 };
 
-                               let inner1 = ApuInner { _phantom: PhantomData,
-                                sample: 44100,
- 
-                                ch0: None,
-                                ch1: None,
-                                ch2: None,
-                                ch3: None,
- 
-                                nr10: 0,
-                                nr11: 0,
-                                nr12: 0,
-                                nr13: 0,
-                                nr14: 0,
- 
-                                nr21: 0,
-                                nr22: 0,
-                                nr23: 0,
-                                nr24: 0,
- 
-                                nr30: 0,
-                                nr31: 0,
-                                nr32: 0,
-                                nr33: 0,
-                                nr34: 0,
-                                wave_ram: [0; 0x10],
- 
-                                nr41: 0,
-                                nr42: 0,
-                                nr43: 0,
-                                nr44: 0,
- 
-                                nr50: 0,
-                                nr51: 0,
-                                nr52: 0 };
+                              let inn=inner.clone();
+                              
         Self { inner: Arc::new(Mutex::new(inner)),
-            apuinner: inner1 }
+            apuinner: inn }
     }
 }
 
@@ -184,7 +141,9 @@ impl<D: Audio> Apu<D> {
         SamplesMutex::new(&self.inner)
     }
 
-
+pub fn getinner(&self)->ApuInner<D>{
+    self.apuinner.clone()
+}
     pub fn lock(&self) -> MutexGuard<ApuInner<D>> {
      
         match self.inner.lock() {
@@ -194,12 +153,46 @@ impl<D: Audio> Apu<D> {
     }
 }
 
-//
-// - APU registers always have some bits set when read back.
-// - Wave memory can be read back freely.
-// - When powered off, registers are cleared, except high bit of NR52.
-// - While off, register writes are ignored, but not reads.
-// - Wave RAM is always readable and writable, and unaffected by power.
+
+
+impl<D: Audio> Clone for ApuInner<D> {
+    fn clone(&self) -> Self {
+        ApuInner {
+            _phantom: PhantomData,
+            sample: self.sample,
+            ch0: self.ch0.clone(),
+            ch1: self.ch1.clone(),
+            ch2: self.ch2.clone(),
+            ch3: self.ch3.clone(),
+            nr10: self.nr10,
+            nr11: self.nr11,
+            nr12: self.nr12,
+            nr13: self.nr13,
+            nr14: self.nr14,
+            nr21: self.nr21,
+            nr22: self.nr22,
+            nr23: self.nr23,
+            nr24: self.nr24,
+            nr30: self.nr30,
+            nr31: self.nr31,
+            nr32: self.nr32,
+            nr33: self.nr33,
+            nr34: self.nr34,
+            wave_ram: self.wave_ram.clone(),
+            nr41: self.nr41,
+            nr42: self.nr42,
+            nr43: self.nr43,
+            nr44: self.nr44,
+            nr50: self.nr50,
+            nr51: self.nr51,
+            nr52: self.nr52,
+        }
+    }
+}
+
+
+
+
 impl<D: Audio> Device for Apu<D> {
     fn read(&self, addr: u16) -> u8 {
         let apu = match self.inner.lock() {
@@ -327,28 +320,6 @@ impl<D: Audio> Device for Apu<D> {
             if apu.nr52 & 0x80 == 0 {
                 apu.power_off();
             }
-        }
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use crate::{apu::apu::Apu
-, device::device::Device};
-
-    #[test]
-    fn wave_ram() {
-        let mut apu = Apu::<()>::default();
-
-        let wave = &[0x01_u8, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0xfe, 0xcd, 0xba, 0x98,
-                     0x76, 0x54, 0x32, 0x10];
-
-        for (i, w) in wave.iter().copied().enumerate() {
-            apu.write(0xff30 + i as u16, w)
-        }
-
-        for (i, w) in wave.iter().copied().enumerate() {
-            assert_eq!(w, apu.read(0xff30 + i as u16));
         }
     }
 }

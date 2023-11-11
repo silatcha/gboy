@@ -57,16 +57,4 @@ impl Device for Interrupts {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use crate::{
-        device::device::Device,
-        interrupt::interrupt::{Flag::*, Interrupts},
-    };
 
-    #[test]
-    #[ignore]
-    fn request() {
-        unimplemented!()
-    }
-}

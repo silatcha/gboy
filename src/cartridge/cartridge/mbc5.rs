@@ -49,11 +49,9 @@ impl Device for Mbc5 {
 
     fn write(&mut self, addr: u16, data: u8) {
         match addr as usize {
-            // Mostly the same as for MBC1, a value of 0Ah will enable reading and writing to
-            // external RAM. A value of 00h will disable it.
+
             0x0000..=0x1fff => self.ram_enabled = data & 0xf == 0xa,
-            // The lower 8 bits of the 9-bit rom bank select is written to the 2000-2FFF area while
-            // the upper bit is written to the least significant bit of the 3000-3FFF area.
+
             0x2000..=0x2fff => {
                 self.rom_bank &= !0xff;
                 self.rom_bank |= data as usize;
@@ -62,9 +60,7 @@ impl Device for Mbc5 {
                 self.rom_bank &= 0xff;
                 self.rom_bank |= (data as usize & 0x1) << 8;
             }
-            // writing a value (XXXXBBBB - X = Don't care, B = bank select bits) into 4000-5FFF area
-            // will select an appropriate RAM bank at A000-BFFF if the cart contains RAM. Ram sizes
-            // are 64kbit,256kbit, & 1mbit.
+
             0x4000..=0x5fff => self.ram_bank = (data & 0xf) as usize,
             0x6000..=0x7fff => { /* read-only */ }
             addr @ 0xa000..=0xbfff => {

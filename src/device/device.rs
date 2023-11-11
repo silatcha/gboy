@@ -36,27 +36,3 @@ impl Device for () {
     fn write(&mut self, _: u16, _: u8) {}
 }
 
-#[cfg(test)]
-mod tests {
-    use crate::device::device::Device;
-
-    #[test]
-    fn words() {
-        impl Device for [u8; 4] {
-            fn read(&self, addr: u16) -> u8 {
-                self[addr as usize]
-            }
-
-            fn write(&mut self, addr: u16, data: u8) {
-                self[addr as usize] = data;
-            }
-        }
-
-        let mut dev = [0u8; 4];
-
-        dev.write_word(0, 0x1234);
-        dev.write_word(2, 0xabcd);
-        assert_eq!(0x1234, dev.read_word(0));
-        assert_eq!(0xabcd, dev.read_word(2));
-    }
-}

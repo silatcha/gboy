@@ -68,12 +68,7 @@ impl Device for Timer {
             0xff04 => self.div = 0,
             0xff05 => self.tima = data,
             0xff06 => self.tma = data,
-            // Bit 2    - Timer Stop  (0=Stop, 1=Start)
-            // Bits 1-0 - Input Clock Select
-            //            00:   4096 Hz    (~4194 Hz SGB)
-            //            01: 262144 Hz  (~268400 Hz SGB)
-            //            10:  65536 Hz   (~67110 Hz SGB)
-            //            11:  16384 Hz   (~16780 Hz SGB)
+
             0xff07 => {
                 self.tac = data;
                 let freq = match self.tac & 0x3 {
@@ -90,5 +85,4 @@ impl Device for Timer {
     }
 }
 
-#[cfg(test)]
-mod tests {}
+

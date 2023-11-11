@@ -40,6 +40,8 @@ macro_rules! sample {
 sample! {
     (i16, std::i16::MIN, std::i16::MAX),
     (u16, std::u16::MIN, std::u16::MAX),
+    (u8, std::u8::MIN, std::u8::MAX),
+    (i8, std::i8::MIN, std::i8::MAX),
     (f32, -1.0, 1.0)
 }
 
@@ -88,37 +90,110 @@ impl<T: Sample> Audio for Mono44100<T> {
     }
 }
 
-/// A stub device for emulators without sound support.
-///
-/// # Panic
-/// Since this device is meant for emulators without sound, calling any method
-/// will panic.
 impl Audio for () {
-    type Sample = ();
+    type Sample = u8;
 
     fn sample_rate() -> u64 {
-        panic!()
+        4
     }
 
     fn mono() -> bool {
-        panic!()
+        true
     }
 }
 
-impl Sample for () {
-    fn min() -> Self {
-        panic!()
+/*
+impl Sample for i16 {
+    fn min() -> i16 {
+        i16::MIN
     }
 
-    fn max() -> Self {
-        panic!()
+    fn max() -> i16 {
+        i16::MAX
     }
 
-    fn from_f64(_: f64) -> Self {
-        panic!()
+    fn from_f64(n: f64) -> i16 {
+        n as i16
     }
 
     fn as_f64(self) -> f64 {
-        panic!()
+        self as f64
     }
 }
+
+
+
+impl Sample for u16 {
+    fn min() -> u16 {
+        u16::MIN
+    }
+
+    fn max() -> u16 {
+        u16::MAX
+    }
+
+    fn from_f64(n: f64) -> u16 {
+        n as u16
+    }
+
+    fn as_f64(self) -> f64 {
+        self as f64
+    }
+}
+
+
+impl Sample for u8 {
+    fn min() -> u8 {
+        u8::MIN
+    }
+
+    fn max() -> u8 {
+        u8::MAX
+    }
+
+    fn from_f64(n: f64) -> u8 {
+        n as u8
+    }
+
+    fn as_f64(self) -> f64 {
+        self as f64
+    }
+}
+
+impl Sample for i8 {
+    fn min() -> i8 {
+        i8::MIN
+    }
+
+    fn max() -> i8 {
+        i8::MAX
+    }
+
+    fn from_f64(n: f64) -> i8 {
+        n as i8
+    }
+
+    fn as_f64(self) -> f64 {
+        self as f64
+    }
+}
+
+impl Sample for f32 {
+    fn min() -> f32 {
+         -1.0
+    }
+
+    fn max() -> f32 {
+        1.0
+    }
+
+    fn from_f64(n: f64) -> f32 {
+        n as f32
+    }
+
+    fn as_f64(self) -> f64 {
+        self as f64
+    }
+}
+
+*/

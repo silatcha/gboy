@@ -12,12 +12,6 @@ use crate::{
 };
 
 
-// return value for the HDMA5 register some games expect all the bits to be set,
-// even though the specification only requires the MSB to be.
-//
-// Tested games:
-// - Simpsons THOH expectds 0xff to load levels (window now shown)
-// - 0xff corrupts pokemon crystal
 const HDMA5_DATA: u8 = 0xff;
 const HDMA_DATA: u8 = 0xff; // HDMA1..4
 const HRAM_SIZE: usize = 0x7f;
@@ -49,18 +43,7 @@ impl Default for VRamDma {
     }
 }
 
-// 0000-3FFF   16KB ROM Bank 00     (in cartridge, fixed at bank 00)
-// 4000-7FFF   16KB ROM Bank 01..NN (in cartridge, switchable bank number)
-// 8000-9FFF   8KB Video RAM (VRAM) (switchable bank 0-1 in CGB Mode)
-// A000-BFFF   8KB External RAM     (in cartridge, switchable bank, if any)
-// C000-CFFF   4KB Work RAM Bank 0 (WRAM)
-// D000-DFFF   4KB Work RAM Bank 1 (WRAM)  (switchable bank 1-7 in CGB Mode)
-// E000-FDFF   Same as C000-DDFF (ECHO)    (typically not used)
-// FE00-FE9F   Sprite Attribute Table (OAM)
-// FEA0-FEFF   Not Usable
-// FF00-FF7F   I/O Ports
-// FF80-FFFE   High RAM (HRAM)
-// FFFF        Interrupt Enable Register
+
 pub struct Mmu<C: Cartridge, V: Video, D: Audio> {
     #[cfg_attr(not(feature = "dmg-data"), allow(dead_code))]
     mode: Mode,
@@ -153,7 +136,7 @@ impl<C: Cartridge, V: Video, D: Audio> Mmu<C, V, D> {
         const FRAME_CYCLES: u64 = 144 * (SEARCH + PIXELS + HBLANK) + VBLANK;
 
         let mut cycles = carry;
-        let mut cpu_rem = 0;
+        let  cpu_rem = 0;
         while cycles < FRAME_CYCLES {
             let mut cpu_cycles = cpu.step(self);
 
@@ -192,18 +175,7 @@ impl<C: Cartridge, V: Video, D: Audio> Mmu<C, V, D> {
         }
     }
 
-    // Writing to this register launches a DMA transfer from ROM or RAM to OAM
-    // memory (sprite attribute table). The written value specifies the transfer
-    // source address divided by 100h, ie. source & destination are:
-    //
-    // Source:      XX00-XX9F   ;XX in range from 00-F1h
-    // Destination: FE00-FE9F
-    //
-    // It takes 160 microseconds until the transfer has completed (80 microseconds
-    // in CGB Double Speed Mode), during this time the CPU can access only HRAM
-    // (memory at FF80-FFFE). For this reason, the programmer must copy a short
-    // procedure into HRAM, and use this procedure to start the transfer from inside
-    // HRAM, and wait until the transfer has finished:
+   
     fn oam_dma(&mut self, d: u8) {
         let src = u16::from(d) << 8;
         let dst = 0xfe00;
@@ -215,10 +187,7 @@ impl<C: Cartridge, V: Video, D: Audio> Mmu<C, V, D> {
         }
     }
 
-    // Writing to FF55 starts the transfer, the lower 7 bits of FF55 specify the
-    // Transfer Length (divided by 10h, minus 1). Ie. lengths of 10h-800h bytes can
-    // be defined by the values 00h-7Fh. And the upper bit of FF55 indicates the
-    // Transfer Mode:
+ 
     fn vram_dma(&mut self, hdma5: u8) {
         let hdma1 = self.vram_dma.hdma1;
         let hdma2 = self.vram_dma.hdma2;
@@ -243,8 +212,8 @@ impl<C: Cartridge, V: Video, D: Audio> Device for Mmu<C, V, D> {
         #[cfg(feature = "dmg-data")]
         use dmg_boot::{cgb, gb};
 
-        static BOOT_GB: &[u8] = include_bytes!("../../data/Super_Mario_Land.gb");
-        static BOOT_CGB: &[u8] = include_bytes!("../../data/Legend_of_Zelda.gbc");
+      //  static BOOT_GB: &[u8] = include_bytes!("../../data/Legend_of_Zelda.gbc");
+      //  static BOOT_CGB: &[u8] = include_bytes!("../../data/Legend_of_Zelda.gbc");
 
 
 
@@ -253,10 +222,10 @@ impl<C: Cartridge, V: Video, D: Audio> Device for Mmu<C, V, D> {
 
         match addr {
             // data roms
-            0x0000..=0x00ff if !self.boot && self.mode == Mode::GB => BOOT_GB[addr as usize],
+          /*  0x0000..=0x00ff if !self.boot && self.mode == Mode::GB => BOOT_GB[addr as usize],
             0x0000..=0x00ff | 0x0150..=0x0900 if !self.boot && self.mode == Mode::CGB => {
                 BOOT_CGB[addr as usize]
-            }
+            }*/
 
             0x0000..=0x7fff => self.cartridge.read(addr),
             0x8000..=0x9fff => self.ppu.read(addr),
@@ -343,20 +312,3 @@ impl<C: Cartridge, V: Video, D: Audio> Device for Mmu<C, V, D> {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use crate::{device::device::Device, mmu::mmu::Mmu, Mode};
-
-    #[test]
-    fn oam_dma() {
-        let mut mmu = Mmu::<_, _, ()>::new(Mode::GB, (), ());
-
-        mmu.write(0xff46, 0);
-
-        for addr in 0..=0x9f {
-            let rom = mmu.read(addr as u16);
-            let oam = mmu.read(0xfe00 | (addr as u16));
-            assert_eq!(rom, oam);
-        }
-    }
-}

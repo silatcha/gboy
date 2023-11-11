@@ -144,6 +144,9 @@ fn handle_input(pump: &mut EventPump,
         match event {
             Event::Window { win_event: WindowEvent::Close,
                             .. } => return true,
+            Event::KeyDown { scancode: Some(Scancode::Escape), .. } => {
+                return true
+             }
             Event::KeyDown { scancode: Some(s), .. } => {
                 if let Some(key) = map_scancode(s) {
                     joypad.press(key)
